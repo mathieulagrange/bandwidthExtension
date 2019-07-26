@@ -13,7 +13,8 @@ import numpy as np
 class CNNTrainer:
     def __init__(self,
                  model,
-                 optimizer=optim.Adam,
+                 optimizer_type=optim.Adam,
+                 optimizer=None,
                  lr=0.001,
                  weight_decay=0,
                  gradient_clipping=None,
@@ -26,8 +27,9 @@ class CNNTrainer:
         self.lr = lr
         self.weight_decay = weight_decay
         self.clip = gradient_clipping
-        self.optimizer_type = optimizer
-        self.optimizer = self.optimizer_type(params=self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        if optimizer is None:
+            optimizer = optimizer_type(params=self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        self.optimizer = optimizer
         self.snapshot_path = snapshot_path
         self.snapshot_name = snapshot_name
         self.snapshot_interval = snapshot_interval
@@ -117,7 +119,10 @@ class CNNTrainer:
 
             fileName = self.snapshot_path + '_Epoch' + str(current_epoch+1)+'.torch'
             fileNames.append(fileName)
-            torch.save(self.model, fileName)
+            torch.save({
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict()
+            }, fileName)
         print('Finished training at epoch {}. Final loss is {:.6f}.'.format(epochs, loss))
         # toc = time.time()
         # with open('logs/' + self.snapshot_name + '.txt', 'a') as log_file:

@@ -11,26 +11,26 @@ function [config, store, obs] = baex2train(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 2, 'mask', {1 2 2 3 4}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 2, 'mask', {1 2 2 3 1:2}); return; else store=[]; obs=[]; end
 
 switch setting.method
     case 'dnn'
         cc = config;
-        if ~isempty(config.sequentialData)
+        if ~isempty(config.sequentialData) % sequential run
             data.modelPath =  config.sequentialData.modelPath;
             cc.step.setting.epochs = cc.step.setting.epochs-config.sequentialData.epochs;
         else
-            % check if previous available
-            if setting.epochs>10
+            if setting.epochs>10 % retrieve from data store to handle restart
+                % retrieve previous model
                 ss = num2cell(setting.infoId);
                 ss{5} = ss{5}-1;
                 ss = expStepSetting(config.factors, {ss}, 2);
                 d = load([config.dataPath config.stepName{config.step.id} '/' ss.setting.infoHash  '_data']);
                 o = load([config.dataPath config.stepName{config.step.id} '/' ss.setting.infoHash  '_obs']);
-                data.modelPath =  d.data.modelPath{end};
+                data.modelPath =  d.modelPath{end};
                 cc.step.setting.epochs = cc.step.setting.epochs-ss.setting.epochs;
-                config.sequentialData.obs = o.data;
-            else
+                config.sequentialData.obs = o;
+            else % init sequential data for storing model across epochs
                 config.sequentialData.obs = [];
             end
         end

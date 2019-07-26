@@ -13,6 +13,7 @@ function [config, store, obs] = baex4performance(config, setting, data)
 % Set behavior for debug mode                                                           
 if nargin==0, bandwithExtension('do', 4, 'mask', {1 1 2 3 4 1 1}); return; else store=[]; obs=[]; end
 
+% load list of spectrogram files from step 1
 d = expLoad(config, [], 1, 'data');
 reference=[];
 for k=1:length(d.testFiles)

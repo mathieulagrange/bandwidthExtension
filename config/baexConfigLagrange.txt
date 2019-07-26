@@ -30,7 +30,7 @@ machineNames  = {{ 'pc-lagrange', 'dodo', 'toto', 'yoyo'}, {'pc-adtsi-sunda.ircc
 % path to input data (usually accessed read only)
 inputPath  = /data/databases
 % path to the code repository of the experiment (diamond operator <> do not replace unless you do not want expLanes to fill this field automatically)
-codePath  = /home/lagrange/projects/bandwidthExtension/explanes/bandwithExtension
+codePath  = /home/lagrange/projects/bandwidthExtension
 % path to the data repository of the experiment (structured with one directory per step)
 dataPath  = /home/lagrange/data/experiments/bandwithExtension
 % path to the data repository of the experiment for observation data (same as dataPath if left blank)

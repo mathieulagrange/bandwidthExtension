@@ -13,25 +13,29 @@ def main(config):
     dtype = torch.FloatTensor
     ltype = torch.LongTensor
 
-
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         print('Using CUDA.')
         dtype = torch.cuda.FloatTensor
         ltype = torch.cuda.LongTensor
 
+    optimizer = None
     if config.step!='features':
         model = CNNModel(kernel_size=config.kernel_size)
-
 
         if use_cuda:
             model = nn.DataParallel(model).cuda()
         #model.cuda()
 
+        optimizer = optim.Adam(params=model.parameters(), lr=config.lr, weight_decay=0.0)
         if hasattr(config.data, 'modelPath'):
             modelPath = np.array2string(np.squeeze(config.data.modelPath))[1:-1]
             print(modelPath)
-            model = load_model_from(modelPath, use_cuda=True)
+            checkpoint = torch.load(modelPath)
+            model.load_state_dict(checkpoint['model_state_dict'])
+            print(checkpoint['optimizer_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            # model = load_model_from(modelPath, use_cuda=True)
         #model = torch.load('snapshots/some_model')
 
         print('Model: ', model)
@@ -71,6 +75,7 @@ def main(config):
         trainer = CNNTrainer(model=model,
                              lr=config.lr,
                              weight_decay=0.0,
+                             optimizer=optimizer,
                              snapshot_path=config.expLanes,
                              snapshot_interval=config.snapshot_interval,
                              dtype=dtype)

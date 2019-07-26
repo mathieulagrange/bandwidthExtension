@@ -8,8 +8,10 @@ function config = exposeLoss(config, data, p)
 % Copyright: Mathieu Lagrange                                   
 % Date: 24-Jun-2019                                             
 
+data.rawData{end}.loss
 
-plot([data.rawData{1}.loss; data.rawData{1}.lossValidation]')
+plot([data.rawData{end}.loss; data.rawData{end}.lossValidation]')
 legend({'train' 'test'})   
 ylabel('loss')
 xlabel('epochs')
+

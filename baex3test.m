@@ -11,23 +11,14 @@ function [config, store, obs] = baex3test(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 3, 'mask', {1 1 2 3 4 1 1}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 3, 'mask', {1 2 2 3 5 1 2}); return; else store=[]; obs=[]; end
 
+% test on train
 if (strcmp(setting.split, 'train'))
     data.testPath = data.trainPath;
     data.testFiles = data.trainFiles;
 end
 
-% if (setting.squeezeTest ~= setting.squeeze)
-%     dMask = config.mask;
-%     dMask{2} = setting.squeezeTest;
-%     config = toto;
-%     d = expLoad(config, [], 'data');
-%     data.testPath = d.trainPath;
-%     data.testFiles = d.trainFiles;
-% end
-
-% [status,cmdout] =
 switch setting.method
     case 'dnn'
         data.modelPath = data.modelPath{end};

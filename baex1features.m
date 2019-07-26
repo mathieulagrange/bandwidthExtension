@@ -13,4 +13,5 @@ function [config, store, obs] = baex1features(config, setting, data)
 % Set behavior for debug mode
 if nargin==0, bandwithExtension('do', 1, 'mask', {1 2}); return; else store=[]; obs=[]; end
 
+% laucnh computation of features python side
 [store, obs] = expSystem(config, data);

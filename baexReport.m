@@ -8,9 +8,7 @@ function config = baexReport(config)
                                                                    
 if nargin==0, bandwithExtension('report', 'r'); return; end      
 
-split = 1;
-
-config = expExpose(config, 'loss', 'step', 2, 'obs', 1, 'mask', {2 1 2 3 5}, 'precision', 4, 'save', 0);
+config = expExpose(config, 'loss', 'step', 2, 'obs', 1, 'mask', {1 1 2 3}, 'precision', 4, 'save', 0);
 
 return 
 
