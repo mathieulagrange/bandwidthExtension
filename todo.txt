@@ -1,0 +1,4 @@
+
+multithread on audio to spectrogram conversion
+
+move project to explanes recfactored for generating plan as shell script
