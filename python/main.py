@@ -32,8 +32,9 @@ def main(config):
             modelPath = np.array2string(np.squeeze(config.data.modelPath))[1:-1]
             print(modelPath)
             checkpoint = torch.load(modelPath)
+            # print(checkpoint['model_state_dict'])
             model.load_state_dict(checkpoint['model_state_dict'])
-            print(checkpoint['optimizer_state_dict'])
+            # print(checkpoint['optimizer_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             # model = load_model_from(modelPath, use_cuda=True)
         #model = torch.load('snapshots/some_model')
