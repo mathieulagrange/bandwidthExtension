@@ -11,7 +11,7 @@ function [config, store, obs] = baex5generate(config, setting, data)
 % Date: 24-Jun-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 5, 'mask', {1 2 1 0 0 1 0 1}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 5, 'mask', {1 2 3 3 0 1}); return; else store=[]; obs=[]; end
 
 d = expLoad(config, [], 1, 'data');
 
@@ -23,9 +23,10 @@ for k=1:length(d.testFiles)
     sRefPhase((k-1)*500+1:(k-1)*500+size(sPhase, 1), :, :) = sPhase;
 end
 
+    
 sRef = sRefMag.*exp(1i*sRefPhase);
 sPred = sRefMag;
-sPred(:, ceil(end/2)+1:end, :) = data.hf;
+%sPred(:, ceil(end/2)+1:end, :) = data.hf;
 sPred = sPred.*exp(1i*sRefPhase);
 
 clear sRefPhase

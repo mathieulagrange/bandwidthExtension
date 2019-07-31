@@ -64,11 +64,13 @@ def main(config):
     data = CNNDataset(dataset_file=dataLocationTrain,
                       file_location=inputLocation+dataset_name,
                       sampling_rate=5000,
+                      block_size = config.sampling_rate,
                       normalize=True, compute=config.step=='features', squeeze=config.squeeze)
 
     data_eval = CNNDataset(dataset_file=dataLocationTest,
                       file_location=inputLocation+dataset_name_eval,
-                           sampling_rate=5000,
+                           sampling_rate=config.sampling_rate,
+                           block_size = config.block_size,
                            normalize=True, compute=config.step=='features', squeeze=config.squeeze)
     print('Dataset smat = hdf5storage.loadmatize:    ', len(data))
 
@@ -92,7 +94,7 @@ def main(config):
 
     if config.step=='test':
         print('----- Evaluation -----')
-        store, obs = trainer.test(dataset=data_eval, batch_size=config.batch_size)
+        store, obs = trainer.test(dataset=data_eval, batch_size=config.block_size, save=True)
 
     if config.expLanes :
         if config.step=='features':
@@ -155,13 +157,15 @@ if __name__ == '__main__':
         config.data = ec['data'].view(np.recarray)
 
         # print(sf)
-        config.batch_size = int(np.squeeze(eSetting['batchSize']))
+        config.batch_size = int(np.nan_to_num(np.squeeze(eSetting['batchSize'])))
+        config.block_size = int(np.nan_to_num(np.squeeze(eSetting['blockSize'])))
+        config.sampling_rate = int(np.nan_to_num(np.squeeze(eSetting['samplingFrequency'])))
         config.squeeze = eSetting['squeeze']
         config.dataset = np.array2string(np.squeeze(eSetting['dataset']))[1:-1]
         if config.step!='features':
-            config.kernel_size = int(np.squeeze(eSetting['kernel_size']))
+            config.kernel_size = int(np.nan_to_num(np.squeeze(eSetting['kernel_size'])))
             config.lr = float(np.squeeze(eSetting['learningRate']))
-            config.epochs = int(np.squeeze(eSetting['epochs']))
+            config.epochs = int(np.nan_to_num(np.squeeze(eSetting['epochs'])))
 
         #print(config.epochs)
         main(config)

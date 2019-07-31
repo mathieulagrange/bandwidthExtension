@@ -10,4 +10,5 @@ samplingFrequency === 5000
 hopSize === 512
 frameSize === 1024
 textureSize === 10
-batchSize === 1000
+batchSize =2== 1000
+blockSize === 500

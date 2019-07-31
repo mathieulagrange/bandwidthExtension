@@ -57,13 +57,14 @@ class CNNDataset(torch.utils.data.Dataset):
         processed_files = np.zeros((self.block_size, 513, self.textureSize))
         processed_files_phase = np.zeros((self.block_size, 513, self.textureSize))
         l=0
+        t=0
         nb_block = 0
         print(len(files))
         if self.squeeze:
             if 'gtzan' in location:
                 files = files[:20]
             else:
-                files = files[:200]
+                files = files[:20]
 
         for i, file in enumerate(tqdm(files)):
             file_data, _ = lr.load(path=file,
@@ -75,6 +76,7 @@ class CNNDataset(torch.utils.data.Dataset):
             spec = lr.stft(file_data, 1024, 512, window='hann', center=False)
             data = np.abs(spec)
             phase = np.angle(spec)
+    
             for k in range(int(np.floor(data.shape[1]/self.textureSize))):
                 processed_files[l, :, :] = data[:, k*self.textureSize:(k+1)*self.textureSize]
                 processed_files_phase[l, :, :] = phase[:, k*self.textureSize:(k+1)*self.textureSize]

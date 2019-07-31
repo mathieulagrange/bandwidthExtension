@@ -11,7 +11,7 @@ function [config, store, obs] = baex3test(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 3, 'mask', {1 2 2 3 5 1}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 3, 'mask', {1 2 2 3 3 1}); return; else store=[]; obs=[]; end
 
 % test on train
 if (strcmp(setting.split, 'train'))

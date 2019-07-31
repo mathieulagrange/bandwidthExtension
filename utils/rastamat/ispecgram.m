@@ -28,10 +28,6 @@ end
 xlen = ftsize + (ncol-1) * hop;
 x = zeros(xlen,1);
 
-halff = ftsize/2;   % midpoint of win
-
-% No reconstruction win (for now...)
-
 for c = 1:ncol
   ft = d(:,c);
   ft = [ft(1:(ftsize/2+1)); conj(ft([(ftsize/2):-1:2]))];

@@ -114,7 +114,7 @@ class CNNTrainer:
             print(losses)
             if dataset_validation is not None:
                 storeTest, obsTest = self.test(dataset_validation, batch_size)
-                lossValidations[current_epoch] = obsTest['loss_spec']
+                lossValidations[current_epoch] = np.mean(obsTest['loss_spec'])
                 print(lossValidations)
 
             fileName = self.snapshot_path + '_Epoch' + str(current_epoch+1)+'.torch'
@@ -132,44 +132,44 @@ class CNNTrainer:
         store['modelPath'] = fileNames
         return store, obs
 
-    def validate(self):
-        self.model.eval()
-        dataset.train = False
+    # def validate(self):
+    #     self.model.eval()
+    #     dataset.train = False
+    #
+    #     # loss_weight = torch.cat((torch.linspace(10, 1, steps=513), torch.ones(512))) # 10 at 0Hz, 1 at 4kHz
+    #     # loss_weight = Variable(loss_weight.type(self.dtype))
+    #     # mel_filters = torch.from_numpy(lr.filters.mel(16000, 1024, n_mels=27))
+    #     if not os.path.exists(self.snapshot_path):
+    #         os.makedirs(self.snapshot_path)
+    #
+    #     total_loss = 0
+    #     for x in iter(self.dataloader):
+    #         t = x[:, :, 257:513]
+    #         x = x[:, :, 1:257]
+    #
+    #         x = Variable(x.type(self.dtype))
+    #         t = Variable(t.type(self.dtype))
+    #
+    #         o = self.model(x.unsqueeze(1))
+    #         # if self.target=='spec':
+    #         #     loss = F.mse_loss(o.squeeze(), t.squeeze())
+    #         # elif self.target=='wspec':
+    #         #     loss = torch.mean(loss_weight*(o.squeeze()-t.squeeze())**2)
+    #         # elif self.target=='cpredictionqt':
+    #         #     mel_filters_b = Variable(mel_filters.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
+    #         #     loss = F.mse_loss(torch.bmm(o.squeeze()**2, mel_filters_b), torch.bmm(t.squeeze()**2, mel_filters_b))
+    #         # else:
+    #         #     print('LD_LIBRARY_PATH="" /usr/bin/python3 ../../main.py --expLanes=/home/lagrange/data/experiments/bandwithExtension/train/e117e4422e7d22279eefc82cde97fe4bUnrecognized target representation.')
+    #
+    #         loss = F.mse_loss(o.squeeze(dim=1), t) # .squeeze()
+    #         total_loss += loss.data
+    #
+    #     avg_loss = total_loss / len(self.dataloader)
+    #     dataset.train = True
+    #     self.model.train()
+    #     return avg_loss
 
-        # loss_weight = torch.cat((torch.linspace(10, 1, steps=513), torch.ones(512))) # 10 at 0Hz, 1 at 4kHz
-        # loss_weight = Variable(loss_weight.type(self.dtype))
-        # mel_filters = torch.from_numpy(lr.filters.mel(16000, 1024, n_mels=27))
-        if not os.path.exists(self.snapshot_path):
-            os.makedirs(self.snapshot_path)
-
-        total_loss = 0
-        for x in iter(self.dataloader):
-            t = x[:, :, 257:513]
-            x = x[:, :, 1:257]
-
-            x = Variable(x.type(self.dtype))
-            t = Variable(t.type(self.dtype))
-
-            o = self.model(x.unsqueeze(1))
-            # if self.target=='spec':
-            #     loss = F.mse_loss(o.squeeze(), t.squeeze())
-            # elif self.target=='wspec':
-            #     loss = torch.mean(loss_weight*(o.squeeze()-t.squeeze())**2)
-            # elif self.target=='cpredictionqt':
-            #     mel_filters_b = Variable(mel_filters.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
-            #     loss = F.mse_loss(torch.bmm(o.squeeze()**2, mel_filters_b), torch.bmm(t.squeeze()**2, mel_filters_b))
-            # else:
-            #     print('LD_LIBRARY_PATH="" /usr/bin/python3 ../../main.py --expLanes=/home/lagrange/data/experiments/bandwithExtension/train/e117e4422e7d22279eefc82cde97fe4bUnrecognized target representation.')
-
-            loss = F.mse_loss(o.squeeze(dim=1), t) # .squeeze()
-            total_loss += loss.data
-
-        avg_loss = total_loss / len(self.dataloader)
-        dataset.train = True
-        self.model.train()
-        return avg_loss
-
-    def test(self, dataset, batch_size=1):
+    def test(self, dataset, batch_size=1, save=False):
         self.model.eval()
         dataset.train = False
         dataloader = torch.utils.data.DataLoader(dataset,
@@ -184,14 +184,15 @@ class CNNTrainer:
         mel27 = torch.from_numpy(lr.filters.mel(5000, 1024, n_mels=27))
         mel40 = torch.from_numpy(lr.filters.mel(5000, 1024, n_mels=40))
         # Initialize losses
-        loss_spec = 0
-        loss_cqt27 = 0
-        loss_cqt40 = 0
+        loss_spec = np.zeros(len(dataloader))
+        loss_cqt27 = np.zeros(len(dataloader))
+        loss_cqt40 = np.zeros(len(dataloader))
 
         store = {}
         obs = {}
-        predictions = np.zeros((len(dataset), 10, 256))
+        predictions = [] #np.zeros((len(dataset), 10, 256))
         # Iterate
+        # print(batch_size)
         tic = time.time()
         for i, x in enumerate(dataloader):
             dc_b = Variable(dc.repeat(x.size(0), 1, 1).type(self.dtype))
@@ -199,38 +200,41 @@ class CNNTrainer:
             mel40_b = Variable(mel40.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
 
             t = x[:, :, 257:513]
-            # x = x/100
             x = x[:, :, 1:257]
 
             x = Variable(x.type(self.dtype))
             t = Variable(t.type(self.dtype))
 
             o = self.model(x.unsqueeze(1))
-            # o=o*100
-            # x=x*100
             reference = torch.cat((dc_b, x, t), 2)
             prediction = torch.cat((dc_b, x, o.squeeze(dim=1)), 2)
             p = o.squeeze(dim=1).data.cpu().numpy()
-            predictions[i*batch_size:i*batch_size+p.shape[0], :, :]= p
+
+            predictionFilename = self.snapshot_path+'_'+str(i+1)+'.npy'
+            if save:
+                # print(predictionFilename)
+                np.save(predictionFilename, p)
+                predictions.append(predictionFilename)
+            #predictions[i*batch_size:i*batch_size+p.shape[0], :, :]= p
             # print('reference: '+str(reference.size())+' mel: '+str(mel27_b.size()))
             # Compute losses
-            loss_spec = loss_spec+F.mse_loss(prediction, reference).data*x.size(0)
-            loss_cqt27 = loss_cqt27+F.mse_loss(torch.bmm(prediction**2, mel27_b), torch.bmm(reference**2, mel27_b)).data*x.size(0)
-            loss_cqt40 = loss_cqt40+F.mse_loss(torch.bmm(prediction**2, mel40_b), torch.bmm(reference**2, mel40_b)).data*x.size(0)
+            loss_spec[i] = float(F.mse_loss(prediction, reference).data) # *x.size(0)
+            loss_cqt27[i] = float(F.mse_loss(torch.bmm(prediction**2, mel27_b), torch.bmm(reference**2, mel27_b)).data) # *x.size(0)
+            loss_cqt40[i] = float(F.mse_loss(torch.bmm(prediction**2, mel40_b), torch.bmm(reference**2, mel40_b)).data) # *x.size(0)
 
         # Reduce losses
-        loss_spec = loss_spec/len(dataset)
-        loss_cqt27 = loss_cqt27/len(dataset)
-        loss_cqt40 = loss_cqt40/len(dataset)
+        # loss_spec = loss_spec/len(dataset)
+        # loss_cqt27 = loss_cqt27/len(dataset)
+        # loss_cqt40 = loss_cqt40/len(dataset)
 
         # Write log file
         # toc = time.time()
         # with open('logs/' + self.snapshot_name + '_eval.txt', 'a') as log_file:
         #     log_file.write('Loss_spec: {:.6f}\nLoss_cqt27: {:.6f}\nLoss_cqt40: {:.6f}\nElapsed: {:.3f}, Iters: {}, It/s: {:.3f}\n'.format(loss_spec, loss_cqt27, loss_cqt40, toc - tic, len(dataloader), len(dataloader)/(toc - tic)))
-        obs['loss_spec'] = float(loss_spec)
-        obs['loss_cqt27'] = float(loss_cqt27)
-        obs['loss_cqt40'] = float(loss_cqt40)
-        print(obs['loss_spec'])
+        obs['loss_spec'] = loss_spec
+        obs['loss_cqt27'] = loss_cqt27
+        obs['loss_cqt40'] = loss_cqt40
+        # print(obs['loss_spec'])
         store['predictions'] = predictions
         return store, obs
 
