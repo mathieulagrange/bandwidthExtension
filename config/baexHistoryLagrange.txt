@@ -83,3 +83,5 @@ bandwithExtension('do', 2:4, 'mask', {{1 1 2 3 0 1}}, 'host', 1.2, 'parallel', 1
 bandwithExtension('do', 3:4, 'mask', {{1 1 [1 3 4] 3 0 1}}, 'host', 1.2, 'parallel', 1)
 bandwithExtension('do', 4, 'mask', {{1 1 0 3 5 1}}, 'host', 1.2, 'parallel', 1)
 bandwithExtension('do', 3, 'mask', {{1 1 2 3 5 1}}, 'host', 1.2)
+bandwithExtension('do', 3, 'mask', {1 2 2 3 5 1})
+bandwithExtension('do', 4, 'mask', {1 2 4 3 5 1 0 0 0 0 0 0 0 0 0 0}, 'parallel', 1, 'host', 1.2)

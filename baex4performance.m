@@ -11,7 +11,7 @@ function [config, store, obs] = baex4performance(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 4, 'mask', {1 1 2 3 5 1}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 4, 'mask', {1 2 [4] 3 5 1 0 0 1 0 0 0 0 0 0 [1 2]}); return; else store=[]; obs=[]; end
 
 % load list of spectrogram files from step 1
 d = expLoad(config, [], 1, 'data');
@@ -38,14 +38,14 @@ for k=1:length(d.testFiles)
         sRefPhaseSqueeze(end+1:end+size(sRefPhase, 3), :) = squeeze(sRefPhase(l, :, :))';
     end
     sRefMag = sRefMagSqueeze;
-    sRefPhase = sRefPhaseSqueeze;   
+    sRefPhase = sRefPhaseSqueeze;
     %    sRefMag  = reshape(permute(sRefMag, [1 3 2]), size(sRefMag, 1)*size(sRefMag, 3), size(sRefMag, 2));
     %    sRefPhase  = reshape(permute(sRefPhase, [1 3 2]), size(sRefPhase, 1)*size(sRefPhase, 3), size(sRefPhase, 2));
     
     sPredMag = sRefMag;
     switch setting.method
         case 'dnn'
-            hfMag = readNPY(data.predictions{k});   
+            hfMag = readNPY(data.predictions{k});
             hfMagSqueeze=[];
             for l=1:size(hfMag, 1)
                 hfMagSqueeze(end+1:end+size(hfMag, 2), :) = squeeze(hfMag(l, :, :));
@@ -59,7 +59,7 @@ for k=1:length(d.testFiles)
         case 'oracle'
     end
     if (isfield(config, 'debug'))
-        dbstop in baex4performance at 70
+        dbstop in baex4performance at 67
         clf
         iddg = randi(size(sRefMag, 1));
         plot([mean(sRefMag(iddg:iddg+10, :)); mean(sPredMag(iddg:iddg+10, :))]')
@@ -71,22 +71,38 @@ for k=1:length(d.testFiles)
     obs.lossCqt40(k) = immse(mel40*sRefMag'.^2, mel40*sPredMag'.^2);
     
     sRef = sRefMag.*exp(1i*sRefPhase);
-    sPred = sPredMag.*exp(1i*sRefPhase);
     soundRef = ispecgram(sRef.');
-    soundPred = ispecgram(sPred.');
+ 
+    if (setting.knownPhase)
+        sPredPhase = sRefPhase;
+    else
+        expRandomSeed();
+        sPredPhase = randn(size(sPredMag)).';
+        sPredPhase(1:ceil(size(sRefPhase, 2)/2), :) = sRefPhase(:, 1:ceil(size(sRefPhase, 2)/2)).';
+       for l=1:setting.glNbIterations
+            sPredPhase = angle(specgram(ispecgram(sPredMag.'.*exp(1i*sPredPhase)), setting.frameSize, setting.frameSize/2, setting.frameSize));
+            sPredPhase(1:ceil(size(sRefPhase, 2)/2), :) = sRefPhase(:, 1:ceil(size(sRefPhase, 2)/2)).';
+        end
+        sPredPhase = sPredPhase.';
+    end
+    sPred = sPredMag.*exp(1i*sPredPhase);
+     soundPred = ispecgram(sPred.');
     
-    obs.mse(k) = immse(soundRef, soundPred);
-    obs.srr(k) = log10(sqrt(mean(soundRef.^2))/sqrt(obs.mse(k)+eps));
+    obs.nmse(k) = immse(soundRef, soundPred)/(norm(soundRef, 2).^2/numel(soundRef));
+    obs.srr(k) = log10(sqrt(mean(soundRef.^2))/sqrt(immse(soundRef, soundPred)+eps));
+    obs.srrMatlab(k) = snr(soundRef, soundRef-soundPred);
     
     if (setting.squeeze)
         % save files only for squeezed dataset
         ls = floor(length(soundPred)/(setting.samplingFrequency*60))*setting.samplingFrequency*60;
         soundPreds = reshape(soundPred(1:ls), setting.samplingFrequency*60, []);
-        
+        obs.audioFileNames = {};
         fileName = [expSave(config) '_audio_'];
         for l=1:size(soundPreds, 2)
+            fileNameL = [fileName num2str(idx) '.ogg'];
+            obs.audioFileNames{end+1} = fileNameL;
             sound = soundPreds(:, l)/max(abs(soundPreds(:, l)))*.9;
-            audiowrite([fileName num2str(idx) '.wav'], sound, setting.samplingFrequency);
+            audiowrite(fileNameL, sound, setting.samplingFrequency);
             idx=idx+1;
         end
     end

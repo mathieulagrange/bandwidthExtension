@@ -32,9 +32,9 @@ for c = 1:ncol
   ft = d(:,c);
   ft = [ft(1:(ftsize/2+1)); conj(ft([(ftsize/2):-1:2]))];
 
-  if max(imag(ifft(ft))) > 1e-5
-    disp('imag oflow');
-  end
+%   if max(imag(ifft(ft))) > 1e-5
+%     disp('imag oflow');
+%   end
   
   px = real(ifft(ft));  % no shift in specgram
   
