@@ -11,7 +11,7 @@ function [config, store, obs] = baex2train(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 2, 'mask', {1 2 2 3 3}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 2, 'mask', {1 2 2 3 1}); return; else store=[]; obs=[]; end
 
 switch setting.method
     case 'dnn'

@@ -13,5 +13,15 @@ function [config, store, obs] = baex1features(config, setting, data)
 % Set behavior for debug mode
 if nargin==0, bandwithExtension('do', 1, 'mask', {1 2}); return; else store=[]; obs=[]; end
 
+switch (setting.dataset)
+    case 'librispeech'
+        data.samplingFrequency = 5000;
+        data.frameSize = 128;
+    case 'gtzan'
+        data.samplingFrequency = 22050;
+        data.frameSize = 1024;
+end
+
 % laucnh computation of features python side
 [store, obs] = expSystem(config, data);
+store.samplingFrequency = data.samplingFrequency;

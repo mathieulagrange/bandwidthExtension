@@ -22,7 +22,7 @@ end
 switch setting.method
     case 'dnn'
         if (setting.squeeze)
-            % use model from non squeezed datast training
+            % use model from non squeezed dataset training
             ss = num2cell(setting.infoId);
             ss{2} = 1;
             ss = expStepSetting(config.factors, {ss}, 2);

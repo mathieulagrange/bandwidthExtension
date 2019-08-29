@@ -49,6 +49,8 @@ class CNNTrainer:
                                                       shuffle=True,
                                                       num_workers=8,
                                                       pin_memory=False)
+
+        print(dataset.frame_size)
         store={}
         obs={}
         # DC component
@@ -74,8 +76,8 @@ class CNNTrainer:
             for current_batch, (x) in enumerate(self.dataloader):
                 dc_b = Variable(dc.repeat(x.size(0), 1, 1).type(self.dtype))
                 # x = x/100
-                t = x[:, :, 257:513]
-                x = x[:, :, 1:257]
+                t = x[:, :, int(x.size(2)/2)+1:]
+                x = x[:, :, 1:int(x.size(2)/2)+1]
 
                 x = Variable(x.type(self.dtype))
                 t = Variable(t.type(self.dtype))
@@ -172,6 +174,7 @@ class CNNTrainer:
     def test(self, dataset, batch_size=1, save=False):
         self.model.eval()
         dataset.train = False
+        print(dataset.frame_size)
         dataloader = torch.utils.data.DataLoader(dataset,
                                                  batch_size=batch_size,
                                                  shuffle=False,
@@ -199,8 +202,8 @@ class CNNTrainer:
             mel27_b = Variable(mel27.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
             mel40_b = Variable(mel40.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
 
-            t = x[:, :, 257:513]
-            x = x[:, :, 1:257]
+            t = x[:, :, int(x.size(2)/2)+1:]
+            x = x[:, :, 1:int(x.size(2)/2)+1]
 
             x = Variable(x.type(self.dtype))
             t = Variable(t.type(self.dtype))

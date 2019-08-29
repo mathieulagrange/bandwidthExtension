@@ -16,10 +16,10 @@ class CNNModel(nn.Module):
         layers.append(nn.Conv2d(1, 64, (3, kernel_size), stride=1))
         layers.append(nn.ReLU())
         layers.append(nn.ReplicationPad2d((padding_size, padding_size, 1, 1)))
-        layers.append(nn.Conv2d(64, 32, (3, kernel_size), stride=1))
+        layers.append(nn.Conv2d(64, 64, (3, kernel_size), stride=1))
         layers.append(nn.ReLU())
         layers.append(nn.ReplicationPad2d((padding_size, padding_size, 1, 1)))
-        layers.append(nn.Conv2d(32, 1, (3, kernel_size), stride=1))
+        layers.append(nn.Conv2d(64, 1, (3, kernel_size), stride=1))
         layers.append(nn.ReLU())
         self.main = nn.Sequential(*layers)
 

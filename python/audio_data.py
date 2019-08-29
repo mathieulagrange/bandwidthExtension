@@ -22,6 +22,7 @@ class CNNDataset(torch.utils.data.Dataset):
                  dtype=np.uint8,
                  train=True,
                  textureSize=10,
+                 frame_size = 1024,
                  block_size=500,
                  compute=0,
                  squeeze=0):
@@ -30,6 +31,7 @@ class CNNDataset(torch.utils.data.Dataset):
         self.dataset_file = dataset_file
         self.textureSize = textureSize
         self.squeeze = squeeze
+        self.frame_size = frame_size
 
         if compute: # not os.path.isfile(self.dataset_file+'_1.npy'):
             assert file_location is not None, 'Error: Unspecified location of dataset files.'
@@ -73,10 +75,13 @@ class CNNDataset(torch.utils.data.Dataset):
             if self.normalize:
                 file_data = lr.util.normalize(file_data)
 
-            spec = lr.stft(file_data, 1024, 512, window='hann', center=False)
+            # print(self.frame_size)
+            # print(int(self.frame_size/2))
+            # print(self.sampling_rate)
+            spec = lr.stft(file_data, n_fft=1024, hop_length=512, win_length=self.frame_size, window='hann', center=False)
             data = np.abs(spec)
             phase = np.angle(spec)
-    
+
             for k in range(int(np.floor(data.shape[1]/self.textureSize))):
                 processed_files[l, :, :] = data[:, k*self.textureSize:(k+1)*self.textureSize]
                 processed_files_phase[l, :, :] = phase[:, k*self.textureSize:(k+1)*self.textureSize]

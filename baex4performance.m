@@ -11,7 +11,7 @@ function [config, store, obs] = baex4performance(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 4, 'mask', {1 2 [4] 3 5 1 0 0 1 0 0 0 0 0 0 [1 2]}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 4, 'mask', {1 2 [3 4] 3 5 1 0 0 0 0 0 0 0 0 0 2}); return; else store=[]; obs=[]; end
 
 % load list of spectrogram files from step 1
 d = expLoad(config, [], 1, 'data');
@@ -21,9 +21,9 @@ if (strcmp(setting.split, 'train'))
 end
 
 % mel projection matrices
-mel27 = fft2melmx(setting.frameSize, setting.samplingFrequency, 27);
+mel27 = fft2melmx(setting.frameSize, d.samplingFrequency, 27);
 mel27 = mel27(:, 1:end/2+1);
-mel40 = fft2melmx(setting.frameSize, setting.samplingFrequency, 40);
+mel40 = fft2melmx(setting.frameSize, d.samplingFrequency, 40);
 mel40 = mel40(:, 1:end/2+1);
 
 idx = 0;
@@ -89,20 +89,19 @@ for k=1:length(d.testFiles)
      soundPred = ispecgram(sPred.');
     
     obs.nmse(k) = immse(soundRef, soundPred)/(norm(soundRef, 2).^2/numel(soundRef));
-    obs.srr(k) = log10(sqrt(mean(soundRef.^2))/sqrt(immse(soundRef, soundPred)+eps));
-    obs.srrMatlab(k) = snr(soundRef, soundRef-soundPred);
+    obs.srr(k) = snr(soundRef, soundRef-soundPred);
     
     if (setting.squeeze)
         % save files only for squeezed dataset
-        ls = floor(length(soundPred)/(setting.samplingFrequency*60))*setting.samplingFrequency*60;
-        soundPreds = reshape(soundPred(1:ls), setting.samplingFrequency*60, []);
+        ls = floor(length(soundPred)/(d.samplingFrequency*60))*d.samplingFrequency*60;
+        soundPreds = reshape(soundPred(1:ls), d.samplingFrequency*60, []);
         obs.audioFileNames = {};
         fileName = [expSave(config) '_audio_'];
         for l=1:size(soundPreds, 2)
             fileNameL = [fileName num2str(idx) '.ogg'];
             obs.audioFileNames{end+1} = fileNameL;
             sound = soundPreds(:, l)/max(abs(soundPreds(:, l)))*.9;
-            audiowrite(fileNameL, sound, setting.samplingFrequency);
+            audiowrite(fileNameL, sound, d.samplingFrequency);
             idx=idx+1;
         end
     end
