@@ -21,7 +21,7 @@ def main(config):
 
     optimizer = None
     if config.step!='features':
-        model = CNNModel(kernel_size=config.kernel_size)
+        model = CNNModel(kernel_size=config.kernel_size, nb_channels=config.nb_channels, nb_layers=config.nb_layers)
 
         if use_cuda:
             model = nn.DataParallel(model).cuda()
@@ -66,6 +66,7 @@ def main(config):
                       sampling_rate=config.sampling_rate,
                       block_size = config.block_size,
                       frame_size = config.frame_size,
+                      fft_size = config.fft_size,
                       normalize=True, compute=config.step=='features', squeeze=config.squeeze)
 
     data_eval = CNNDataset(dataset_file=dataLocationTest,
@@ -73,6 +74,7 @@ def main(config):
                            sampling_rate=config.sampling_rate,
                            block_size = config.block_size,
                            frame_size = config.frame_size,
+                           fft_size = config.fft_size,
                            normalize=True, compute=config.step=='features', squeeze=config.squeeze)
     print('Dataset smat = hdf5storage.loadmatize:    ', len(data))
 
@@ -81,7 +83,7 @@ def main(config):
                              lr=config.lr,
                              weight_decay=0.0,
                              optimizer=optimizer,
-                             snapshot_path=config.expLanes,
+                             snapshot_path=config.expLanes[0:-4],
                              snapshot_interval=config.snapshot_interval,
                              dtype=dtype)
 
@@ -114,10 +116,12 @@ def main(config):
         if config.step=='test':
             print('test')
 
-        if os.path.exists(config.expLanes+'_data.mat'): os.remove(config.expLanes+'_data.mat')
-        hdf5storage.savemat(config.expLanes+'_data', store)
-        if os.path.exists(config.expLanes+'_obs.mat'):os.remove(config.expLanes+'_obs.mat')
-        hdf5storage.savemat(config.expLanes+'_obs', obs)
+        if os.path.exists(config.expLanes[0:-8]+'_data.mat'):
+            os.remove(config.expLanes[0:-8]+'_data.mat')
+        hdf5storage.savemat(config.expLanes[0:-8]+'_data', store)
+        if os.path.exists(config.expLanes[0:-8]+'_obs.mat'):
+            os.remove(config.expLanes[0:-8]+'_obs.mat')
+        hdf5storage.savemat(config.expLanes[0:-8]+'_obs', obs)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -145,11 +149,12 @@ if __name__ == '__main__':
     config = parser.parse_args()
 
     if config.expLanes :
+        print('loading expLanes config')
         ec = hdf5storage.loadmat(config.expLanes)
+
         eSetting = ec['data']['info']['setting']
         eConfig = ec['data']['info']['config']
         # print(ec)
-
         eC = eConfig.view(np.recarray)
         eS = eSetting.view(np.recarray)
 
@@ -161,14 +166,22 @@ if __name__ == '__main__':
         # print(sf)
         config.batch_size = int(np.nan_to_num(np.squeeze(eSetting['batchSize'])))
         config.block_size = int(np.nan_to_num(np.squeeze(eSetting['blockSize'])))
-        config.frame_size = int(np.nan_to_num(np.squeeze(ec['data']['frameSize'])))
-        config.sampling_rate = int(np.nan_to_num(np.squeeze(ec['data']['samplingFrequency'])))
         config.squeeze = eSetting['squeeze']
         config.dataset = np.array2string(np.squeeze(eSetting['dataset']))[1:-1]
-        if config.step!='features':
+        config.fft_size = int(np.nan_to_num(np.squeeze(eSetting['fftSize'])))
+
+        if config.step=='features':
+            config.frame_size = int(np.nan_to_num(np.squeeze(ec['data']['frameSize'])))
+            config.sampling_rate = int(np.nan_to_num(np.squeeze(ec['data']['samplingFrequency'])))
+        else :
             config.kernel_size = int(np.nan_to_num(np.squeeze(eSetting['kernelSize'])))
             config.lr = float(np.squeeze(eSetting['learningRate']))
             config.epochs = int(np.nan_to_num(np.squeeze(eSetting['epochs'])))
+            config.nb_channels = int(np.nan_to_num(np.squeeze(eSetting['nbChannels'])))
+            config.nb_layers = int(np.nan_to_num(np.squeeze(eSetting['nbLayers'])))
+            config.sampling_rate = 1
+            config.frame_size = 1
 
+        print('done')
         #print(config.epochs)
         main(config)

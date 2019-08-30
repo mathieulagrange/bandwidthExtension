@@ -11,7 +11,7 @@ function [config, store, obs] = baex3test(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 3, 'mask', {1 2 2 3 3 1}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 3, 'mask', {1 2 1 2 5 1}); return; else store=[]; obs=[]; end
 
 % test on train
 if (strcmp(setting.split, 'train'))
@@ -26,8 +26,11 @@ switch setting.method
             ss = num2cell(setting.infoId);
             ss{2} = 1;
             ss = expStepSetting(config.factors, {ss}, 2);
-            d = load([config.dataPath config.stepName{config.step.id-1} '/' ss.setting.infoHash  '_data']);
+            unSqueezeDataFileName = [config.dataPath config.stepName{config.step.id-1} '/' ss.setting.infoHash  '_data.mat'];
+            if (exist(unSqueezeDataFileName, 'file'))
+            d = load(unSqueezeDataFileName);
             data.modelPath = d.data.modelPath;
+            end
         end
         
         data.modelPath = data.modelPath{end};

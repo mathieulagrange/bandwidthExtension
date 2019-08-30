@@ -71,6 +71,7 @@ class CNNTrainer:
         lossValidations = np.zeros(epochs)
         fileNames = []
         tic = time.time()
+        print(epochs)
         for current_epoch in range(epochs):
             loss_batch = np.zeros(len(self.dataloader))
             for current_batch, (x) in enumerate(self.dataloader):

@@ -11,7 +11,7 @@ function [config, store, obs] = baex2train(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 2, 'mask', {1 2 2 3 1}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 2, 'mask', {1 2 1 2 1}, 'dryMode', 0); return; else store=[]; obs=[]; end
 
 switch setting.method
     case 'dnn'
@@ -41,9 +41,13 @@ switch setting.method
         end
         [ss, obs] = expSystem(cc, data);
         store = data;
-        store.modelPath = ss.modelPath;
-        config.sequentialData.modelPath = store.modelPath{end};
-        config.sequentialData.obs = expMerge(config.sequentialData.obs, obs);
-        config.sequentialData.epochs = setting.epochs;
-        obs = config.sequentialData.obs;
+        if (~isempty(ss))
+            store.modelPath = ss.modelPath;
+            if (~isempty(ss.modelPath))
+                config.sequentialData.modelPath = store.modelPath{end};
+                config.sequentialData.obs = expMerge(config.sequentialData.obs, obs);
+                config.sequentialData.epochs = setting.epochs;
+            end
+            obs = config.sequentialData.obs;
+        end
 end

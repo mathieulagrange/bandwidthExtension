@@ -23,6 +23,7 @@ class CNNDataset(torch.utils.data.Dataset):
                  train=True,
                  textureSize=10,
                  frame_size = 1024,
+                 fft_size = 1024,
                  block_size=500,
                  compute=0,
                  squeeze=0):
@@ -32,6 +33,7 @@ class CNNDataset(torch.utils.data.Dataset):
         self.textureSize = textureSize
         self.squeeze = squeeze
         self.frame_size = frame_size
+        self.fft_size = fft_size
 
         if compute: # not os.path.isfile(self.dataset_file+'_1.npy'):
             assert file_location is not None, 'Error: Unspecified location of dataset files.'
@@ -56,8 +58,8 @@ class CNNDataset(torch.utils.data.Dataset):
     def create_dataset(self, location):
         print('Creating dataset from audio files at', location)
         files = list_all_audio_files(location)
-        processed_files = np.zeros((self.block_size, 513, self.textureSize))
-        processed_files_phase = np.zeros((self.block_size, 513, self.textureSize))
+        processed_files = np.zeros((self.block_size, int(self.fft_size/2)+1, self.textureSize))
+        processed_files_phase = np.zeros((self.block_size, int(self.fft_size/2)+1, self.textureSize))
         l=0
         t=0
         nb_block = 0
@@ -66,9 +68,9 @@ class CNNDataset(torch.utils.data.Dataset):
             if 'gtzan' in location:
                 files = files[:20]
             else:
-                files = files[:20]
+                files = files[:50]
 
-        for i, file in enumerate(tqdm(files)):
+        for i, file in enumerate(files):
             file_data, _ = lr.load(path=file,
                                    sr=self.sampling_rate,
                                    mono=self.mono)
@@ -78,7 +80,7 @@ class CNNDataset(torch.utils.data.Dataset):
             # print(self.frame_size)
             # print(int(self.frame_size/2))
             # print(self.sampling_rate)
-            spec = lr.stft(file_data, n_fft=1024, hop_length=512, win_length=self.frame_size, window='hann', center=False)
+            spec = lr.stft(file_data, n_fft=self.fft_size, hop_length=int(self.fft_size/2), win_length=self.frame_size, window='hann', center=False)
             data = np.abs(spec)
             phase = np.angle(spec)
 
@@ -89,22 +91,22 @@ class CNNDataset(torch.utils.data.Dataset):
                 if l==self.block_size:
                     nb_block = nb_block+1
                     l=0
-                    np.save(self.dataset_file+'_'+str(nb_block)+'.npy', processed_files)
+                    np.save(self.dataset_file+'_'+str(nb_block)+'_magnitude.npy', processed_files)
                     np.save(self.dataset_file+'_'+str(nb_block)+'_phase.npy', processed_files_phase)
 
         if l!=0:
-            np.save(self.dataset_file+'_'+str(nb_block+1)+'.npy', processed_files[0:l, :, :])
+            np.save(self.dataset_file+'_'+str(nb_block+1)+'_magnitude.npy', processed_files[0:l, :, :])
             np.save(self.dataset_file+'_'+str(nb_block+1)+'_phase.npy', processed_files_phase[0:l, :, :])
 
     def get_files(self):
-        nb_block = len(glob.glob(self.dataset_file+'_*[0-9].npy'))
-        fileNames = [self.dataset_file+'_'+str(i)+'.npy' for i in range(1, nb_block+1)]
+        nb_block = len(glob.glob(self.dataset_file+'_*[0-9]_magnitude.npy'))
+        fileNames = [self.dataset_file+'_'+str(i)+'_magnitude.npy' for i in range(1, nb_block+1)]
         print(fileNames)
         return fileNames
 
     def calculate_length(self):
         # dataset_dir, _ = os.path.split(self.dataset_file)
-        files = glob.glob(self.dataset_file+'_*[0-9].npy')
+        files = glob.glob(self.dataset_file+'_*[0-9]_magnitude.npy')
         # files = [f for f in files if 'spec' in f]
         newest_file = max(files, key=os.path.getctime)
         input_data = np.load(newest_file, mmap_mode='r')
@@ -115,7 +117,7 @@ class CNNDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         ib = int(np.floor(idx/self.block_size))
         idx = idx-ib*self.block_size
-        data = np.load(self.dataset_file+'_'+str(ib+1)+'.npy', mmap_mode='r')[idx, :, :]
+        data = np.load(self.dataset_file+'_'+str(ib+1)+'_magnitude.npy', mmap_mode='r')[idx, :, :]
         data = torch.from_numpy(data).type(torch.FloatTensor)
         data = data.permute(1, 0)
         return data

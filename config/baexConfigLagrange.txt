@@ -53,9 +53,7 @@ localDependencies  = 0
 % version tag of the code of the experiment
 codeVersion  = 0.1
 
-%% COMPUTINGif config.expLanes :
-        ec = hdf5storage.loadmat(config.expLanes)
-    
+%% COMPUTING
 
 % processing steps to execute: -1 none, 0 all, >0 processing step by numeric id
 do  = -1
@@ -82,6 +80,8 @@ progress  = 1
 exitMatlab  = 0
 % show timing observations
 recordTiming  = 1
+% dryMode
+dryMode = 0
 
 %% DATA
 

@@ -11,7 +11,7 @@ function [config, store, obs] = baex4performance(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 4, 'mask', {1 2 [3 4] 3 5 1 0 0 0 0 0 0 0 0 0 2}); return; else store=[]; obs=[]; end
+if nargin==0, bandwithExtension('do', 4, 'mask', {1 2 1 2 5 1}, 'debug', 1); return; else store=[]; obs=[]; end
 
 % load list of spectrogram files from step 1
 d = expLoad(config, [], 1, 'data');
@@ -21,15 +21,15 @@ if (strcmp(setting.split, 'train'))
 end
 
 % mel projection matrices
-mel27 = fft2melmx(setting.frameSize, d.samplingFrequency, 27);
+mel27 = fft2melmx(setting.fftSize, d.samplingFrequency, 27);
 mel27 = mel27(:, 1:end/2+1);
-mel40 = fft2melmx(setting.frameSize, d.samplingFrequency, 40);
+mel40 = fft2melmx(setting.fftSize, d.samplingFrequency, 40);
 mel40 = mel40(:, 1:end/2+1);
 
 idx = 0;
 for k=1:length(d.testFiles)
     sRefMag = readNPY(d.testFiles{k});
-    sRefPhase = readNPY(strrep(d.testFiles{k}, '.npy', '_phase.npy'));
+    sRefPhase = readNPY(strrep(d.testFiles{k}, '_magnitude.npy', '_phase.npy'));
     
     sRefMagSqueeze=[];
     sRefPhaseSqueeze=[];
@@ -52,7 +52,7 @@ for k=1:length(d.testFiles)
             end
             sPredMag(:, ceil(end/2+1):end) = hfMagSqueeze;
             
-        case 'replication'
+        case 'replicate'
             sPredMag(:, ceil(size(sRefMag, 2)/2)+1:size(sRefMag, 2)) = replicationBaseline(sRefMag', setting.correlation)';
         case 'null'
             sPredMag(:, ceil(size(sRefMag, 2)/2)+1:size(sRefMag, 2))=0;
@@ -80,7 +80,7 @@ for k=1:length(d.testFiles)
         sPredPhase = randn(size(sPredMag)).';
         sPredPhase(1:ceil(size(sRefPhase, 2)/2), :) = sRefPhase(:, 1:ceil(size(sRefPhase, 2)/2)).';
        for l=1:setting.glNbIterations
-            sPredPhase = angle(specgram(ispecgram(sPredMag.'.*exp(1i*sPredPhase)), setting.frameSize, setting.frameSize/2, setting.frameSize));
+            sPredPhase = angle(specgram(ispecgram(sPredMag.'.*exp(1i*sPredPhase)), setting.fftSize, setting.fftSize/2, setting.fftSize));
             sPredPhase(1:ceil(size(sRefPhase, 2)/2), :) = sRefPhase(:, 1:ceil(size(sRefPhase, 2)/2)).';
         end
         sPredPhase = sPredPhase.';

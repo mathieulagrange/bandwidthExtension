@@ -1,13 +1,16 @@
 dataset === {'librispeech', 'gtzan'}
 squeeze === [0 1]
-method =2:== {'dnn', 'replication', 'null', 'oracle'}
-kernelSize =2:=3/2= [5 9 13]
-epochs =2:s=3/2= (1:5)*10
+method =2:== {'dnn', 'replicate', 'null', 'oracle'}
+kernelSize =2:=3/1= [5 9 13]
+epochs =2:s=3/1= (1:5)*10
 split =3:== {'test', 'train'}
-learningRate =2:=3/2= 0.0001
-correlation =2:=3/1= [0 1]
+nbLayers =2:=3/1= [3 4 5 6]
+nbChannels =2:=3/1= [32 64 128]
+learningRate =2:=3/1= 0.0001
+correlation =2:=3/2= [0 1]
 knownPhase =4:== [0 1]
+glNbIterations =4:=11/1= [0 20 100]
+fftSize === 1024
 textureSize === 10
 batchSize =2== 1000
 blockSize === 500
-glNbIterations =4:=9/1= [0 20 100]
