@@ -1,0 +1,26 @@
+
+machine learning
+
+flexible sound synthesis (reprendre la discussion avec le triangle)
+
+long standing problem, kind of stalled
+
+hope for neural audio synthesis to be the next step
+
+motivations : deep learing for synthesis good in images
+
+challenges : audio has specificities
+
+deformations are more complex
+
+translations from audio to spectral images has some intrinsic limitations
+
+scattering
+
+need to reuce the complexity of the problem for better identifying atteignable chalanges
+
+reduce task comnplexity
+
+one way is to cut on datra complexity nsynth
+
+one way is to cut on target complexity

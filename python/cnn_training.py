@@ -50,7 +50,6 @@ class CNNTrainer:
                                                       num_workers=8,
                                                       pin_memory=False)
 
-        print(dataset.frame_size)
         store={}
         obs={}
         # DC component
@@ -71,7 +70,6 @@ class CNNTrainer:
         lossValidations = np.zeros(epochs)
         fileNames = []
         tic = time.time()
-        print(epochs)
         for current_epoch in range(epochs):
             loss_batch = np.zeros(len(self.dataloader))
             for current_batch, (x) in enumerate(self.dataloader):

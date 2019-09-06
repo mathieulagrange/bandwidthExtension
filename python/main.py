@@ -20,7 +20,7 @@ def main(config):
         ltype = torch.cuda.LongTensor
 
     optimizer = None
-    if config.step!='features':
+    if config.stepName!='features':
         model = CNNModel(kernel_size=config.kernel_size, nb_channels=config.nb_channels, nb_layers=config.nb_layers)
 
         if use_cuda:
@@ -51,7 +51,7 @@ def main(config):
         dataset_name = 'dev'
         dataset_name_eval = 'test'
     print(inputLocation)
-    if config.step=='features':
+    if config.stepName=='features':
         dataLocation = np.array2string(np.squeeze(config.eC.dataPath))[1:-1]
         dataLocation += 'features/'
         dataLocation += np.array2string(np.squeeze(config.eS.infoHash))[1:-1]
@@ -67,7 +67,7 @@ def main(config):
                       block_size = config.block_size,
                       frame_size = config.frame_size,
                       fft_size = config.fft_size,
-                      normalize=True, compute=config.step=='features', squeeze=config.squeeze)
+                      normalize=True, compute=config.stepName=='features', squeeze=config.squeeze)
 
     data_eval = CNNDataset(dataset_file=dataLocationTest,
                       file_location=inputLocation+dataset_name_eval,
@@ -75,10 +75,10 @@ def main(config):
                            block_size = config.block_size,
                            frame_size = config.frame_size,
                            fft_size = config.fft_size,
-                           normalize=True, compute=config.step=='features', squeeze=config.squeeze)
+                           normalize=True, compute=config.stepName=='features', squeeze=config.squeeze)
     print('Dataset smat = hdf5storage.loadmatize:    ', len(data))
 
-    if config.step!='features':
+    if config.stepName!='features':
         trainer = CNNTrainer(model=model,
                              lr=config.lr,
                              weight_decay=0.0,
@@ -87,7 +87,7 @@ def main(config):
                              snapshot_interval=config.snapshot_interval,
                              dtype=dtype)
 
-    if config.step=='train':
+    if config.stepName=='train':
         print('----- Training -----')
         store, obs = trainer.train(dataset=data,
                       dataset_validation=data_eval,
@@ -96,12 +96,12 @@ def main(config):
                       target=config.target,
                       q = config.q)
 
-    if config.step=='test':
+    if config.stepName=='test':
         print('----- Evaluation -----')
         store, obs = trainer.test(dataset=data_eval, batch_size=config.block_size, save=True)
 
     if config.expLanes :
-        if config.step=='features':
+        if config.stepName=='features':
             store = {}
             obs = {}
             store['trainPath'] = data.dataset_file
@@ -111,9 +111,9 @@ def main(config):
 
             obs['nbBlocksTrain'] = len(data)
             obs['nbBlocksTest'] = len(data_eval)
-        if config.step=='train':
+        if config.stepName=='train':
             print('train')
-        if config.step=='test':
+        if config.stepName=='test':
             print('test')
 
         if os.path.exists(config.expLanes[0:-8]+'_data.mat'):
@@ -151,26 +151,27 @@ if __name__ == '__main__':
     if config.expLanes :
         print('loading expLanes config')
         ec = hdf5storage.loadmat(config.expLanes)
+        print('done')
 
         eSetting = ec['data']['info']['setting']
-        eConfig = ec['data']['info']['config']
+        eConfig = ec['data']['info']
         # print(ec)
-        eC = eConfig.view(np.recarray)
+        config.eC = eConfig.view(np.recarray)
         eS = eSetting.view(np.recarray)
 
-        config.step = np.squeeze(eC.stepName)[int(np.squeeze(eC.step.id).item(0)-1)]
-        config.eC = eC
+        config.stepName = np.squeeze(config.eC.stepName)
         config.eS = eS
         config.data = ec['data'].view(np.recarray)
 
-        # print(sf)
-        config.batch_size = int(np.nan_to_num(np.squeeze(eSetting['batchSize'])))
-        config.block_size = int(np.nan_to_num(np.squeeze(eSetting['blockSize'])))
+        # config.batch_size = int(np.nan_to_num(np.squeeze(eSetting['batchSize'])))
+        # config.block_size = int(np.nan_to_num(np.squeeze(eSetting['blockSize'])))
+        config.batch_size = 150
+        config.block_size = 500
         config.squeeze = eSetting['squeeze']
         config.dataset = np.array2string(np.squeeze(eSetting['dataset']))[1:-1]
         config.fft_size = int(np.nan_to_num(np.squeeze(eSetting['fftSize'])))
 
-        if config.step=='features':
+        if config.stepName=='features':
             config.frame_size = int(np.nan_to_num(np.squeeze(ec['data']['frameSize'])))
             config.sampling_rate = int(np.nan_to_num(np.squeeze(ec['data']['samplingFrequency'])))
         else :
@@ -181,7 +182,5 @@ if __name__ == '__main__':
             config.nb_layers = int(np.nan_to_num(np.squeeze(eSetting['nbLayers'])))
             config.sampling_rate = 1
             config.frame_size = 1
-
-        print('done')
         #print(config.epochs)
         main(config)
