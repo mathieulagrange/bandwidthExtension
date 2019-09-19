@@ -64,12 +64,17 @@ class CNNTrainer:
         # if not os.path.exists('logs'):
         #     os.makedirs('logs')
 
+        propagate = True
+        if not epochs:
+            epochs=1
+            propagate = False
         loss = 0
         step = 0
         losses = np.zeros(epochs)
         lossValidations = np.zeros(epochs)
         fileNames = []
         tic = time.time()
+
         for current_epoch in range(epochs):
             loss_batch = np.zeros(len(self.dataloader))
             for current_batch, (x) in enumerate(self.dataloader):
@@ -98,13 +103,15 @@ class CNNTrainer:
 
                 self.optimizer.zero_grad()
                 loss = F.mse_loss(prediction, reference) # .squeeze()
-                loss.backward()
+                if propagate:
+                    print('backward')
+                    loss.backward()
                 loss_batch[current_batch] =  float(loss.data)*x.size(0)
 
                 if self.clip is not None:
                     torch.nn.utils.clip_grad_norm(self.model.parameters(), self.clip)
-
-                self.optimizer.step()
+                if propagate:
+                    self.optimizer.step()
                 step += 1
                 # time step duration
                 if step == 100:
@@ -182,9 +189,6 @@ class CNNTrainer:
 
         # DC component    print(obs['loss_spec'])
         dc = torch.zeros(1, 10, 1)
-        # Mel fft filterbanks
-        mel27 = torch.from_numpy(lr.filters.mel(5000, 1024, n_mels=27))
-        mel40 = torch.from_numpy(lr.filters.mel(5000, 1024, n_mels=40))
         # Initialize losses
         loss_spec = np.zeros(len(dataloader))
         loss_cqt27 = np.zeros(len(dataloader))
@@ -197,6 +201,12 @@ class CNNTrainer:
         # print(batch_size)
         tic = time.time()
         for i, x in enumerate(dataloader):
+            # print('x: '+str(x.size()))
+            if i==0:
+                # Mel fft filterbanks
+                mel27 = torch.from_numpy(lr.filters.mel(5000, (x.size(2)*2)-1, n_mels=27))
+                mel40 = torch.from_numpy(lr.filters.mel(5000, (x.size(2)*2)-1, n_mels=40))
+
             dc_b = Variable(dc.repeat(x.size(0), 1, 1).type(self.dtype))
             mel27_b = Variable(mel27.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
             mel40_b = Variable(mel40.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
@@ -218,7 +228,7 @@ class CNNTrainer:
                 np.save(predictionFilename, p)
                 predictions.append(predictionFilename)
             #predictions[i*batch_size:i*batch_size+p.shape[0], :, :]= p
-            # print('reference: '+str(reference.size())+' mel: '+str(mel27_b.size()))
+            # print('reference: '+str(reference.size())+' mel: '+str(mel27.size())+' melb: '+str(mel27_b.size()))
             # Compute losses
             loss_spec[i] = float(F.mse_loss(prediction, reference).data) # *x.size(0)
             loss_cqt27[i] = float(F.mse_loss(torch.bmm(prediction**2, mel27_b), torch.bmm(reference**2, mel27_b)).data) # *x.size(0)

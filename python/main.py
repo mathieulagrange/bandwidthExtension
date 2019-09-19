@@ -8,7 +8,6 @@ import torch.nn as nn
 import hdf5storage
 import os
 
-
 def main(config):
     dtype = torch.FloatTensor
     ltype = torch.LongTensor
@@ -19,6 +18,7 @@ def main(config):
         dtype = torch.cuda.FloatTensor
         ltype = torch.cuda.LongTensor
 
+    torch.manual_seed(0)    
     optimizer = None
     if config.stepName!='features':
         model = CNNModel(kernel_size=config.kernel_size, nb_channels=config.nb_channels, nb_layers=config.nb_layers)
@@ -66,7 +66,6 @@ def main(config):
                       sampling_rate=config.sampling_rate,
                       block_size = config.block_size,
                       frame_size = config.frame_size,
-                      fft_size = config.fft_size,
                       normalize=True, compute=config.stepName=='features', squeeze=config.squeeze)
 
     data_eval = CNNDataset(dataset_file=dataLocationTest,
@@ -74,7 +73,6 @@ def main(config):
                            sampling_rate=config.sampling_rate,
                            block_size = config.block_size,
                            frame_size = config.frame_size,
-                           fft_size = config.fft_size,
                            normalize=True, compute=config.stepName=='features', squeeze=config.squeeze)
     print('Dataset smat = hdf5storage.loadmatize:    ', len(data))
 
@@ -166,10 +164,9 @@ if __name__ == '__main__':
         # config.batch_size = int(np.nan_to_num(np.squeeze(eSetting['batchSize'])))
         # config.block_size = int(np.nan_to_num(np.squeeze(eSetting['blockSize'])))
         config.batch_size = 150
-        config.block_size = 500
+        config.block_size = 150
         config.squeeze = eSetting['squeeze']
         config.dataset = np.array2string(np.squeeze(eSetting['dataset']))[1:-1]
-        config.fft_size = int(np.nan_to_num(np.squeeze(eSetting['fftSize'])))
 
         if config.stepName=='features':
             config.frame_size = int(np.nan_to_num(np.squeeze(ec['data']['frameSize'])))

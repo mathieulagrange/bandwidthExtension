@@ -23,7 +23,6 @@ class CNNDataset(torch.utils.data.Dataset):
                  train=True,
                  textureSize=10,
                  frame_size = 1024,
-                 fft_size = 1024,
                  block_size=500,
                  compute=0,
                  squeeze=0):
@@ -33,7 +32,6 @@ class CNNDataset(torch.utils.data.Dataset):
         self.textureSize = textureSize
         self.squeeze = squeeze
         self.frame_size = frame_size
-        self.fft_size = fft_size
 
         if compute: # not os.path.isfile(self.dataset_file+'_1.npy'):
             assert file_location is not None, 'Error: Unspecified location of dataset files.'
@@ -56,10 +54,16 @@ class CNNDataset(torch.utils.data.Dataset):
         self.train = train
 
     def create_dataset(self, location):
+        print('deleting existing data files')
+        data_file_names = self.get_files()
+        for data_file_name in data_file_names:
+            os.remove(data_file_name)
+            os.remove(data_file_name.replace('magnitude', 'phase'))
+
         print('Creating dataset from audio files at', location)
         files = list_all_audio_files(location)
-        processed_files = np.zeros((self.block_size, int(self.fft_size/2)+1, self.textureSize))
-        processed_files_phase = np.zeros((self.block_size, int(self.fft_size/2)+1, self.textureSize))
+        processed_files = np.zeros((self.block_size, int(self.frame_size/2)+1, self.textureSize))
+        processed_files_phase = np.zeros((self.block_size, int(self.frame_size/2)+1, self.textureSize))
         l=0
         t=0
         nb_block = 0
@@ -80,7 +84,7 @@ class CNNDataset(torch.utils.data.Dataset):
             # print(self.frame_size)
             # print(int(self.frame_size/2))
             # print(self.sampling_rate)
-            spec = lr.stft(file_data, n_fft=self.fft_size, hop_length=int(self.fft_size/2), win_length=self.frame_size, window='hann', center=False)
+            spec = lr.stft(file_data, n_fft=self.frame_size, hop_length=int(self.frame_size/2), window='hann')
             data = np.abs(spec)
             phase = np.angle(spec)
 

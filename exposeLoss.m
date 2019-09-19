@@ -9,9 +9,16 @@ function config = exposeLoss(config, data, p)
 % Date: 24-Jun-2019                                             
 
 % data.rawData{end}.loss
+loss = [];
+lossValidation = [];
+for k=1:length(data.rawData)
+   loss = [loss data.rawData{k}.loss(end-min(length(data.rawData{k}.loss)-1, 9):end)];
+   lossValidation = [lossValidation data.rawData{k}.lossValidation(end-min(length(data.rawData{k}.lossValidation)-1, 9):end)];
+end
 
-plot([data.rawData{end}.loss; data.rawData{end}.lossValidation]')
-legend({'train' 'test'})   
+% plot([data.rawData{end}.loss; data.rawData{end}.lossValidation]')
+plot([loss; lossValidation]')
+legend({'loss' 'lossValidation'})   
 ylabel('loss')
 xlabel('epochs')
 
