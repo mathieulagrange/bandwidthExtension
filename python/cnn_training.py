@@ -104,7 +104,6 @@ class CNNTrainer:
                 self.optimizer.zero_grad()
                 loss = F.mse_loss(prediction, reference) # .squeeze()
                 if propagate:
-                    print('backward')
                     loss.backward()
                 loss_batch[current_batch] =  float(loss.data)*x.size(0)
 

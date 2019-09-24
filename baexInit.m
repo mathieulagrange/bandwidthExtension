@@ -7,4 +7,5 @@ function [config, store] = baexInit(config)
 % Copyright: Mathieu Lagrange                                         
 % Date: 22-May-2019                                                   
                                                                       
-if nargin==0, bandwithExtension(); return; else store=[];  end        
+if nargin==0, bandwithExtension(); return; else store=[];  end  
+
