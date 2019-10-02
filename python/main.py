@@ -18,10 +18,10 @@ def main(config):
         dtype = torch.cuda.FloatTensor
         ltype = torch.cuda.LongTensor
 
-    torch.manual_seed(0)    
+    torch.manual_seed(0)
     optimizer = None
     if config.stepName!='features':
-        model = CNNModel(kernel_size=config.kernel_size, nb_channels=config.nb_channels, nb_layers=config.nb_layers)
+        model = CNNModel(kernel_size=config.kernel_size, nb_channels=config.nb_channels, nb_layers=config.nb_layers, dilation=config.dilation)
 
         if use_cuda:
             model = nn.DataParallel(model).cuda()
@@ -83,7 +83,8 @@ def main(config):
                              optimizer=optimizer,
                              snapshot_path=config.expLanes[0:-4],
                              snapshot_interval=config.snapshot_interval,
-                             dtype=dtype)
+                             dtype=dtype,
+                             spectrum_normalization = config.spectrum_normalization)
 
     if config.stepName=='train':
         print('----- Training -----')
@@ -177,6 +178,13 @@ if __name__ == '__main__':
             config.epochs = int(np.nan_to_num(np.squeeze(eSetting['epochs'])))
             config.nb_channels = int(np.nan_to_num(np.squeeze(eSetting['nbChannels'])))
             config.nb_layers = int(np.nan_to_num(np.squeeze(eSetting['nbLayers'])))
+            sn = int(np.nan_to_num(np.squeeze(eSetting['spectrumNormalization'])))
+            config.dilation = 0
+            config.spectrum_normalization = False
+            if sn==1:
+                config.spectrum_normalization = True
+            if sn>1:
+                config.dilation = sn
             config.sampling_rate = 1
             config.frame_size = 1
         #print(config.epochs)

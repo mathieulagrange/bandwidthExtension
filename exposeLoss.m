@@ -17,8 +17,10 @@ for k=1:length(data.rawData)
 end
 
 % plot([data.rawData{end}.loss; data.rawData{end}.lossValidation]')
-plot([loss; lossValidation]')
-legend({'loss' 'lossValidation'})   
+plot([lossValidation]')
+% legend({'loss' 'lossValidation'})   
 ylabel('loss')
 xlabel('epochs')
+
+config.displayData.plotSuccess = 1;
 

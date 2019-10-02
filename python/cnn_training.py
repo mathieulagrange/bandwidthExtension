@@ -21,7 +21,8 @@ class CNNTrainer:
                  snapshot_path=None,
                  snapshot_name='snapshot',
                  snapshot_interval=1000,
-                 dtype=torch.FloatTensor):
+                 dtype=torch.FloatTensor,
+                 spectrum_normalization=False):
         self.model = model
         self.dataloader = None
         self.lr = lr
@@ -33,6 +34,7 @@ class CNNTrainer:
         self.snapshot_path = snapshot_path
         self.snapshot_name = snapshot_name
         self.snapshot_interval = snapshot_interval
+        self.spectrum_normalization = spectrum_normalization
         self.dtype = dtype
 
     def train(self,

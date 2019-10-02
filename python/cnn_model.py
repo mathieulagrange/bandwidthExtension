@@ -6,7 +6,7 @@ from tqdm import tqdm
 import torch.nn as nn
 
 class CNNModel(nn.Module):
-    def __init__(self, kernel_size=5, nb_channels=64, nb_layers=3):
+    def __init__(self, kernel_size=5, nb_channels=64, nb_layers=3, dilation=0):
         super(CNNModel, self).__init__()
 
         padding_size = int((kernel_size-1)/2)
@@ -15,10 +15,15 @@ class CNNModel(nn.Module):
         layers.append(nn.ReplicationPad2d((padding_size, padding_size, 1, 1)))
         layers.append(nn.Conv2d(1, nb_channels, (3, kernel_size), stride=1))
         layers.append(nn.ReLU())
+        dil=1
         for l in range(nb_layers-2) :
+            if dilation>1:
+                dil = dilation
+                padding_size = int(dil*(kernel_size-1)/2)
             layers.append(nn.ReplicationPad2d((padding_size, padding_size, 1, 1)))
-            layers.append(nn.Conv2d(nb_channels, nb_channels, (3, kernel_size), stride=1)) 
+            layers.append(nn.Conv2d(nb_channels, nb_channels, (3, kernel_size), stride=1, dilation=(1, dil)))
             layers.append(nn.ReLU())
+        padding_size = int((kernel_size-1)/2)
         layers.append(nn.ReplicationPad2d((padding_size, padding_size, 1, 1)))
         layers.append(nn.Conv2d(nb_channels, 1, (3, kernel_size), stride=1))
         layers.append(nn.ReLU())
