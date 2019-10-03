@@ -1,13 +1,13 @@
-% This is the README for the experiment bandwithExtension
-                                                         
-% Created on 22-May-2019 by lagrange                     
-                                                         
-% Purpose:                                               
-                                                         
-% Reference:                                             
-                                                         
-% Licence:                                               
-                                                         
+% This is the README for the experiment bandwidthExtension
+
+% Created on 22-May-2019 by lagrange
+
+% Purpose:
+
+% Reference:
+
+% Licence:
+
                                                          
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %        Getting started with your experiment based on expLanes          %
@@ -26,5 +26,3 @@
 % More information can be found in the documentation of expLanes:
 
 % https://github.com/mathieulagrange/expLanes/blob/gh-pages/doc/expLanesDocumentation.pdf
-
-

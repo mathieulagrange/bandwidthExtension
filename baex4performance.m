@@ -1,5 +1,5 @@
 function [config, store, obs] = baex4performance(config, setting, data)
-% baex4performance PERFORMANCE step of the expLanes experiment bandwithExtension
+% baex4performance PERFORMANCE step of the expLanes experiment bandwidthExtension
 %    [config, store, obs] = baex4performance(config, setting, data)
 %      - config : expLanes configuration state
 %      - setting   : set of factors to be evaluated
@@ -11,7 +11,7 @@ function [config, store, obs] = baex4performance(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 4, 'mask', {2, 2, 4, 3, 0, 1, 6, 0, 0, 0, 1, 2}, 'debug', 0); return; else store=[]; obs=[]; end
+if nargin==0, bandwidthExtension('do', 4, 'mask', {2, 2, 1, 3, 4, 3, 2, 3, 2}, 'debug', 0); return; else store=[]; obs=[]; end
 
 % load list of spectrogram files from step 1
 d = expLoad(config, [], 1, 'data');
@@ -32,7 +32,7 @@ obs.audioFileNames = {};
 for k=1:length(d.testFiles)
     sRefMag = readNPY(d.testFiles{k});
     sRefPhase = readNPY(strrep(d.testFiles{k}, '_magnitude.npy', '_phase.npy'));
-    
+
     if k==1
         % mel projection matrices
         mel27 = fft2melmx((size(sRefMag, 2)-1)*2, d.samplingFrequency, 27);
@@ -40,7 +40,7 @@ for k=1:length(d.testFiles)
         mel40 = fft2melmx((size(sRefMag, 2)-1)*2, d.samplingFrequency, 40);
         mel40 = mel40(:, 1:end/2+1);
     end
-    
+
     sRefMagSqueeze=[];
     sRefPhaseSqueeze=[];
     for l=1:size(sRefMag, 1)
@@ -51,7 +51,7 @@ for k=1:length(d.testFiles)
     sRefPhase = sRefPhaseSqueeze;
     %    sRefMag  = reshape(permute(sRefMag, [1 3 2]), size(sRefMag, 1)*size(sRefMag, 3), size(sRefMag, 2));
     %    sRefPhase  = reshape(permute(sRefPhase, [1 3 2]), size(sRefPhase, 1)*size(sRefPhase, 3), size(sRefPhase, 2));
-    
+
     sPredMag = sRefMag;
     switch setting.method
         case 'dnn'
@@ -61,7 +61,7 @@ for k=1:length(d.testFiles)
                 hfMagSqueeze(end+1:end+size(hfMag, 2), :) = squeeze(hfMag(l, :, :));
             end
             sPredMag(:, ceil(end/2+1):end) = hfMagSqueeze;
-            
+
         case 'replicate'
             sPredMag(:, ceil(end/2+1):end) = replicationBaseline(sRefMag', setting.correlation)';
         case 'null'
@@ -69,7 +69,7 @@ for k=1:length(d.testFiles)
         case 'oracle'
     end
     if (isfield(config, 'debug') && config.debug)
-        dbstop in baex4performance at 77
+        dbstop in baex4performance at 79
         clf
         iddg = randi(size(sRefMag, 1)-10);
         hold on
@@ -77,7 +77,7 @@ for k=1:length(d.testFiles)
         plot(mean(sRefMag(iddg:iddg+10, :)), 'k')
         legend({'prediction', 'reference'})
     end
-    
+
     obs.lossSpec(k) = immse(sRefMag, sPredMag);
     if ~isempty(specNorm)
         obs.lossSpecNorm(k) = immse(sRefMag./repmat(specNorm, size(sRefMag, 1), 1), sPredMag./repmat(specNorm, size(sPredMag, 1), 1));
@@ -86,10 +86,10 @@ for k=1:length(d.testFiles)
     end
     obs.lossCqt27(k) = immse(mel27*sRefMag'.^2, mel27*sPredMag'.^2);
     obs.lossCqt40(k) = immse(mel40*sRefMag'.^2, mel40*sPredMag'.^2);
-    
+
     sRef = sRefMag.*exp(1i*sRefPhase);
     soundRef = ispecgram(sRef.');
-    
+
     if (setting.knownPhase)
         sPredPhase = sRefPhase;
     else
@@ -105,10 +105,10 @@ for k=1:length(d.testFiles)
     end
     sPred = sPredMag.*exp(1i*sPredPhase);
     soundPred = ispecgram(sPred.');
-    
+
     obs.nmse(k) = immse(soundRef, soundPred)/(norm(soundRef, 2).^2/numel(soundRef));
     obs.srr(k) = snr(soundRef, soundRef-soundPred);
-    
+
     if (setting.squeeze)
         % save files only for squeezed dataset
         if length(soundPred)>d.samplingFrequency*60

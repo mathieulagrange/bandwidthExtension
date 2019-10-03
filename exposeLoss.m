@@ -1,5 +1,5 @@
 function config = exposeLoss(config, data, p)                   
-% exposeLoss EXPOSE of the expLanes experiment bandwithExtension
+% exposeLoss EXPOSE of the expLanes experiment bandwidthExtension
 %    config = exposeLoss(config, data, p)                       
 %       config : expLanes configuration state                   
 %       data : observations as a struct array                   

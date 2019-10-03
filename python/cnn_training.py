@@ -133,9 +133,7 @@ class CNNTrainer:
             'optimizer_state_dict': self.optimizer.state_dict()
             }, fileName)
         print('Finished training at epoch {}. Final loss is {:.6f}.'.format(epochs, loss))
-        # toc = time.time()
-        # with open('logs/' + self.snapshot_name + '.txt', 'a') as log_file:
-        #     log_file.write('Loss: {:.6f}, Elapsed: {:.3f}, Iters: {}, It/s: {:.3f}\n'.format(loss, tLD_LIBRARY_PATH="" /usr/bin/python3 ../../main.py --expLanes=/home/lagrange/data/experiments/bandwithExtension/train/e117e4422e7d22279eefc82cde97fe4boc - tic, len(self.dataloader), len(self.dataloader)/(toc - tic)))
+        
         obs['loss'] = losses
         obs['lossValidation'] = lossValidations
         store['modelPath'] = fileNames
@@ -168,7 +166,6 @@ class CNNTrainer:
     #         #     mel_filters_b = Variable(mel_filters.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
     #         #     loss = F.mse_loss(torch.bmm(o.squeeze()**2, mel_filters_b), torch.bmm(t.squeeze()**2, mel_filters_b))
     #         # else:
-    #         #     print('LD_LIBRARY_PATH="" /usr/bin/python3 ../../main.py --expLanes=/home/lagrange/data/experiments/bandwithExtension/train/e117e4422e7d22279eefc82cde97fe4bUnrecognized target representation.')
     #
     #         loss = F.mse_loss(o.squeeze(dim=1), t) # .squeeze()
     #         total_loss += loss.data

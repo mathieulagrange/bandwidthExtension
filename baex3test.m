@@ -1,5 +1,5 @@
 function [config, store, obs] = baex3test(config, setting, data)
-% baex3test TEST step of the expLanes experiment bandwithExtension
+% baex3test TEST step of the expLanes experiment bandwidthExtension
 %    [config, store, obs] = baex3test(config, setting, data)
 %      - config : expLanes configuration state
 %      - setting   : set of factors to be evaluated
@@ -11,7 +11,7 @@ function [config, store, obs] = baex3test(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwithExtension('do', 3, 'mask', {2 2 1 2 3 3 5 1 1 0 0 0 1 1 1}); return; else store=[]; obs=[]; end
+if nargin==0, bandwidthExtension('do', 3, 'mask', {2 2 1 2 3 3 5 1 1 0 0 0 1 1 1}); return; else store=[]; obs=[]; end
 
 switch setting.method
     case 'dnn'
@@ -26,7 +26,7 @@ switch setting.method
             data.modelPath = d.data.modelPath;
             end
         end
-        
+
         data.modelPath = data.modelPath{end};
         [ss, obs] = expSystem(config, data);
         store.predictions = ss.predictions;
