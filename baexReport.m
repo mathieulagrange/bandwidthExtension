@@ -12,7 +12,7 @@ if nargin==0, bandwidthExtension('report', 'rH'); return; end
 % mask = {2 2 1 3 2 1 0 1 0 0 2};
 % config = expExpose(config, 'loss', 'step', 2, 'obs', 0, 'mask', mask, 'pooling', 'l');
 % return
-show=4;
+show=1;
 
 switch show
     case 1 % step 2 loss
@@ -20,7 +20,8 @@ switch show
         mask = {1 1 1 3 3 0 0 0 2};
 %         mask = {{2 0 1 4 4:5 3 1:3 2:6 2}};
 %         mask = {2 0 1 3 4:5 3 1:3 5:6 2};
-        config = expExpose(config, 'p', 'step', 2, 'obs', 'lossValidation', 'mask', mask, 'negativeRank', [1 2 3], 'precision', 4, 'expand', 'epochs', 'pooling', 'l', 'uncertainty', -1, 'highlight', -1);
+mask = {1, 1, 0, [2  3], 0, 0, [1  2  3], 0, 0, 1};
+        config = expExpose(config, 't', 'step', 2, 'obs', 'lossValidation', 'mask', mask, 'negativeRank', [1 2 3], 'precision', 4, 'expand', 'epochs', 'pooling', 'l', 'uncertainty', -1, 'highlight', -1);
 
     case 2 % step 2 loss per setting
         clf

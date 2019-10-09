@@ -22,8 +22,10 @@ class CNNTrainer:
                  snapshot_name='snapshot',
                  snapshot_interval=1000,
                  dtype=torch.FloatTensor,
-                 spectrum_normalization=False):
+                 spectrum_normalization=False,
+                 method='dnn'):
         self.model = model
+        self.method = method
         self.dataloader = None
         self.lr = lr
         self.weight_decay = weight_decay
@@ -80,19 +82,25 @@ class CNNTrainer:
         for current_epoch in range(epochs):
             loss_batch = np.zeros(len(self.dataloader))
             for current_batch, (x) in enumerate(self.dataloader):
-                dc_b = Variable(dc.repeat(x.size(0), 1, 1).type(self.dtype))
-                # x = x/100
-                t = x[:, :, int(x.size(2)/2)+1:]
-                x = x[:, :, 1:int(x.size(2)/2)+1]
-
+                if self.method == 'dnn':
+                    dc_b = Variable(dc.repeat(x.size(0), 1, 1).type(self.dtype))
+                    # x = x/100
+                    t = x[:, :, int(x.size(2)/2)+1:]
+                    x = x[:, :, 1:int(x.size(2)/2)+1]
+                else:
+                    t = x
+                    x[:, :, int(x.size(2)/2)+1:] = 0
                 x = Variable(x.type(self.dtype))
                 t = Variable(t.type(self.dtype))
 
                 o = self.model(x.unsqueeze(1))
 
-                reference = torch.cat((dc_b, x, t), 2)
-                prediction = torch.cat((dc_b, x, o.squeeze(dim=1)), 2)
-
+                if self.method == 'dnn':
+                    reference = torch.cat((dc_b, x, t), 2)
+                    prediction = torch.cat((dc_b, x, o.squeeze(dim=1)), 2)
+                else:
+                    reference = t
+                    prediction = torch.cat((t[:, :, 0:int(x.size(2)/2)+1], o.squeeze()[:, :, int(x.size(2)/2)+1:]), 2)
                 # if self.target=='spec':
                 #     loss = F.mse_loss(o.squeeze(), t.squeeze())
                 # elif self.target=='wspec':
@@ -105,6 +113,7 @@ class CNNTrainer:
 
                 self.optimizer.zero_grad()
                 loss = F.mse_loss(prediction, reference) # .squeeze()
+
                 if propagate:
                     loss.backward()
                 loss_batch[current_batch] =  float(loss.data)*x.size(0)
@@ -133,7 +142,7 @@ class CNNTrainer:
             'optimizer_state_dict': self.optimizer.state_dict()
             }, fileName)
         print('Finished training at epoch {}. Final loss is {:.6f}.'.format(epochs, loss))
-        
+
         obs['loss'] = losses
         obs['lossValidation'] = lossValidations
         store['modelPath'] = fileNames
@@ -205,19 +214,26 @@ class CNNTrainer:
                 mel27 = torch.from_numpy(lr.filters.mel(5000, (x.size(2)*2)-1, n_mels=27))
                 mel40 = torch.from_numpy(lr.filters.mel(5000, (x.size(2)*2)-1, n_mels=40))
 
-            dc_b = Variable(dc.repeat(x.size(0), 1, 1).type(self.dtype))
             mel27_b = Variable(mel27.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
             mel40_b = Variable(mel40.permute(1, 0).unsqueeze(0).repeat(x.size(0), 1, 1).type(self.dtype))
-
-            t = x[:, :, int(x.size(2)/2)+1:]
-            x = x[:, :, 1:int(x.size(2)/2)+1]
+            if self.method=='dnn':
+                dc_b = Variable(dc.repeat(x.size(0), 1, 1).type(self.dtype))
+                t = x[:, :, int(x.size(2)/2)+1:]
+                x = x[:, :, 1:int(x.size(2)/2)+1]
+            else:
+                t = x
+                x[:, :, int(x.size(2)/2)+1:] = 0
 
             x = Variable(x.type(self.dtype))
             t = Variable(t.type(self.dtype))
 
             o = self.model(x.unsqueeze(1))
-            reference = torch.cat((dc_b, x, t), 2)
-            prediction = torch.cat((dc_b, x, o.squeeze(dim=1)), 2)
+            if self.method=='dnn':
+                reference = torch.cat((dc_b, x, t), 2)
+                prediction = torch.cat((dc_b, x, o.squeeze(dim=1)), 2)
+            else:
+                reference = t
+                prediction = torch.cat((t[:, :, 0:int(x.size(2)/2)+1], o.squeeze()[:, :, int(x.size(2)/2)+1:]), 2)
             p = o.squeeze(dim=1).data.cpu().numpy()
 
             predictionFilename = self.snapshot_path+'_'+str(i+1)+'.npy'

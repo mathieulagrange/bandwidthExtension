@@ -20,6 +20,9 @@ switch (setting.dataset)
     case 'gtzan'
         data.samplingFrequency = 8000;
         data.frameSize = 256;
+    case 'medleysolos'
+        data.samplingFrequency = 8000;
+        data.frameSize = 256;
 end
 
 % launch computation of features python side

@@ -48,11 +48,11 @@ class CNNModel(nn.Module):
         par = list(self.parameters())
         for d in par:
             print(d)
-            
+
 class AutoDense(nn.Module):
-    def __init__(self, N=175, T=10, F=257):
-        super(CNNModel, self).__init__()
-        
+    def __init__(self, N=175, T=10, F=129):
+        super(AutoDense, self).__init__()
+
         layers = nn.ModuleList()
         # Forward
         layers.append(nn.Conv2d(1, N, (1, F), stride=1, padding=0))
@@ -70,7 +70,7 @@ class AutoDense(nn.Module):
         layers.append(nn.ReLU())
         layers.append(nn.ConvTranspose2d(N, 1, (1, F), stride=1, padding=0))
         layers.append(nn.ReLU())
-        
+
         self.main = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -87,9 +87,9 @@ class AutoDense(nn.Module):
             print(d)
 
 class AutoStride(nn.Module):
-    def __init__(self, N=40, K1=(1, 5), K2=(3, 3), S=(1, 2)):
-        super(CNNModel, self).__init__()
-        
+    def __init__(self, N=40, K1=(1, 5), K2=(3, 4), S=(1, 2)):
+        super(AutoStride, self).__init__()
+
         layers = nn.ModuleList()
         # Original implem.
         '''
@@ -139,7 +139,7 @@ class AutoStride(nn.Module):
         layers.append(nn.ReLU())
         layers.append(nn.ConvTranspose2d(N, 1, K1, stride=S, padding=0))
         layers.append(nn.ReLU())
-        
+
         self.main = nn.Sequential(*layers)
 
     def forward(self, x):

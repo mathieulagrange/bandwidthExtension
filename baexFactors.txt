@@ -1,14 +1,15 @@
-dataset === {'librispeech', 'gtzan'}
+dataset === {'librispeech', 'gtzan', 'medleysolos'}
 squeeze === [0 1]
-method =2:== {'dnn', 'replicate', 'null', 'oracle'}
-kernelSize =2:=3/1= [5 9 13 17 21]
-nbLayers =2:=3/1= [3 4 5 6 7]
-nbChannels =2:=3/1= [32 64 128 256 512]
-epochs =2:s=3/1= (0:5)*10
-spectrumNormalization =2:=3/1= [0 1 2 3 4 5] % 2 dilation
-knownPhase =4:== [0 1]
-learningRate =2:=3/1= 0.0001
+method =2:== {'dnn', 'replicate', 'null', 'oracle', 'autoDense', 'autoStride'}
+kernelSize =2:=3/1= [9 13 17 21]
+nbLayers =2:=3/1= [5 6 7]
+nbChannels =2:=3/1= [32 64 128]
+epochs =2:s=3/[1 5 6]= (0:10)*10
+dilation =2:=3/1= [1 2 3]
+spectrumNormalization =2:=3/1= [0]
+estimatePhase =4:== [0 1]
+learningRate =2:=3/[1 5 6]= 0.0001
 correlation =2:=3/2= [0 1]
-glNbIterations =4:=11/1= [0 50]
+glNbIterations =4:=11/2= [0 50]
 textureSize === 10
     

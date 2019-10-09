@@ -21,8 +21,12 @@ def main(config):
     torch.manual_seed(0)
     optimizer = None
     if config.stepName!='features':
-        model = CNNModel(kernel_size=config.kernel_size, nb_channels=config.nb_channels, nb_layers=config.nb_layers, dilation=config.dilation)
-
+        if config.method == 'dnn':
+            model = CNNModel(kernel_size=config.kernel_size, nb_channels=config.nb_channels, nb_layers=config.nb_layers, dilation=config.dilation)
+        elif config.method == 'autoDense':
+            model = AutoDense()
+        elif config.method == 'autoStride':
+            model = AutoStride()
         if use_cuda:
             model = nn.DataParallel(model).cuda()
         #model.cuda()
@@ -46,8 +50,12 @@ def main(config):
         inputLocation = np.array2string(np.squeeze(config.eC.inputPath))[1:-1]+'speech/LibriSpeech/'
         dataset_name = 'dev-clean'
         dataset_name_eval = 'test-clean'
-    else:
+    elif config.dataset=='gtzan':
         inputLocation = np.array2string(np.squeeze(config.eC.inputPath))[1:-1]+'music/gtzan/'
+        dataset_name = 'dev'
+        dataset_name_eval = 'test'
+    elif config.dataset=='medleysolos':
+        inputLocation = np.array2string(np.squeeze(config.eC.inputPath))[1:-1]+'music/medleysolos/'
         dataset_name = 'dev'
         dataset_name_eval = 'test'
     print(inputLocation)
@@ -78,6 +86,7 @@ def main(config):
 
     if config.stepName!='features':
         trainer = CNNTrainer(model=model,
+                             method=config.method,
                              lr=config.lr,
                              weight_decay=0.0,
                              optimizer=optimizer,
@@ -168,6 +177,7 @@ if __name__ == '__main__':
         config.block_size = 150
         config.squeeze = eSetting['squeeze']
         config.dataset = np.array2string(np.squeeze(eSetting['dataset']))[1:-1]
+        config.method = np.array2string(np.squeeze(eSetting['method']))[1:-1]
 
         if config.stepName=='features':
             config.frame_size = int(np.nan_to_num(np.squeeze(ec['data']['frameSize'])))
@@ -178,13 +188,8 @@ if __name__ == '__main__':
             config.epochs = int(np.nan_to_num(np.squeeze(eSetting['epochs'])))
             config.nb_channels = int(np.nan_to_num(np.squeeze(eSetting['nbChannels'])))
             config.nb_layers = int(np.nan_to_num(np.squeeze(eSetting['nbLayers'])))
-            sn = int(np.nan_to_num(np.squeeze(eSetting['spectrumNormalization'])))
-            config.dilation = 0
-            config.spectrum_normalization = False
-            if sn==1:
-                config.spectrum_normalization = True
-            if sn>1:
-                config.dilation = sn
+            config.dilation = int(np.nan_to_num(np.squeeze(eSetting['dilation'])))
+            config.spectrum_normalization = int(np.nan_to_num(np.squeeze(eSetting['spectrumNormalization'])))
             config.sampling_rate = 1
             config.frame_size = 1
         #print(config.epochs)

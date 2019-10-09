@@ -90,7 +90,7 @@ for k=1:length(d.testFiles)
     sRef = sRefMag.*exp(1i*sRefPhase);
     soundRef = ispecgram(sRef.');
 
-    if (setting.knownPhase)
+    if (~setting.estimatePhase)
         sPredPhase = sRefPhase;
     else
         expRandomSeed();
