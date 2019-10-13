@@ -11,7 +11,7 @@ function [config, store, obs] = baex4performance(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwidthExtension('do', 4, 'mask', {2, 2, 1, 3, 4, 3, 2, 3, 2}, 'debug', 0); return; else store=[]; obs=[]; end
+if nargin==0, bandwidthExtension('do', 4, 'mask', {2 2 5 0 0 0 2 0 0 1 0 0 0 0 1}, 'debug', 1); return; else store=[]; obs=[]; end
 
 % load list of spectrogram files from step 1
 d = expLoad(config, [], 1, 'data');
@@ -54,7 +54,7 @@ for k=1:length(d.testFiles)
 
     sPredMag = sRefMag;
     switch setting.method
-        case 'dnn'
+        case {'dnn', 'autoDense', 'autoStride'}
             hfMag = readNPY(data.predictions{k});
             hfMagSqueeze=[];
             for l=1:size(hfMag, 1)

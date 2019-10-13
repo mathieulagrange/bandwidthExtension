@@ -88,6 +88,7 @@ def main(config):
         trainer = CNNTrainer(model=model,
                              method=config.method,
                              lr=config.lr,
+                             log_plus = config.log_plus,
                              weight_decay=0.0,
                              optimizer=optimizer,
                              snapshot_path=config.expLanes[0:-4],
@@ -189,6 +190,7 @@ if __name__ == '__main__':
             config.nb_channels = int(np.nan_to_num(np.squeeze(eSetting['nbChannels'])))
             config.nb_layers = int(np.nan_to_num(np.squeeze(eSetting['nbLayers'])))
             config.dilation = int(np.nan_to_num(np.squeeze(eSetting['dilation'])))
+            config.log_plus = int(np.nan_to_num(np.squeeze(eSetting['logPlus'])))
             config.spectrum_normalization = int(np.nan_to_num(np.squeeze(eSetting['spectrumNormalization'])))
             config.sampling_rate = 1
             config.frame_size = 1

@@ -11,10 +11,10 @@ function [config, store, obs] = baex3test(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwidthExtension('do', 3, 'mask', {2 2 1 2 3 3 5 1 1 0 0 0 1 1 1}); return; else store=[]; obs=[]; end
+if nargin==0, bandwidthExtension('do', 3, 'mask', {2 2 5 0 0 0 2 0 0 1 0 0 0 0 1}); return; else store=[]; obs=[]; end
 
 switch setting.method
-    case 'dnn'
+    case {'dnn', 'autoDense', 'autoStride'}
         if (setting.squeeze)
             % use model from non squeezed dataset training
             ss = num2cell(setting.infoId);

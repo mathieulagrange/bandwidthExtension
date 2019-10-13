@@ -16,6 +16,7 @@ class CNNTrainer:
                  optimizer_type=optim.Adam,
                  optimizer=None,
                  lr=0.001,
+                 log_plus = 0,
                  weight_decay=0,
                  gradient_clipping=None,
                  snapshot_path=None,
@@ -26,6 +27,7 @@ class CNNTrainer:
                  method='dnn'):
         self.model = model
         self.method = method
+        self.log_plus = log_plus
         self.dataloader = None
         self.lr = lr
         self.weight_decay = weight_decay
@@ -88,7 +90,7 @@ class CNNTrainer:
                     t = x[:, :, int(x.size(2)/2)+1:]
                     x = x[:, :, 1:int(x.size(2)/2)+1]
                 else:
-                    t = x
+                    t = x.clone()
                     x[:, :, int(x.size(2)/2)+1:] = 0
                 x = Variable(x.type(self.dtype))
                 t = Variable(t.type(self.dtype))
@@ -101,6 +103,9 @@ class CNNTrainer:
                 else:
                     reference = t
                     prediction = torch.cat((t[:, :, 0:int(x.size(2)/2)+1], o.squeeze()[:, :, int(x.size(2)/2)+1:]), 2)
+                    if self.log_plus:
+                        t = torch.log10(1+t)
+                        x = torch.log10(1+x)
                 # if self.target=='spec':
                 #     loss = F.mse_loss(o.squeeze(), t.squeeze())
                 # elif self.target=='wspec':
@@ -129,10 +134,12 @@ class CNNTrainer:
                     #tqdm.write('One training step takes approximately {:.6f} seconds.'.format((toc - tic) * 0.01))
             #    self.model.module.parameter_print()
             losses[current_epoch] = np.sum(loss_batch)/len(dataset)
+            print('train loss:')
             print(losses)
             if dataset_validation is not None:
                 storeTest, obsTest = self.test(dataset_validation, batch_size)
                 lossValidations[current_epoch] = np.mean(obsTest['loss_spec'])
+                print('test loss:')
                 print(lossValidations)
 
             fileName = self.snapshot_path + '_Epoch' + str(current_epoch+1)+'.torch'
@@ -221,8 +228,11 @@ class CNNTrainer:
                 t = x[:, :, int(x.size(2)/2)+1:]
                 x = x[:, :, 1:int(x.size(2)/2)+1]
             else:
-                t = x
+                t = x.clone()
                 x[:, :, int(x.size(2)/2)+1:] = 0
+                if self.log_plus:
+                    t = torch.log10(1+t)
+                    x = torch.log10(1+x)
 
             x = Variable(x.type(self.dtype))
             t = Variable(t.type(self.dtype))
@@ -231,11 +241,13 @@ class CNNTrainer:
             if self.method=='dnn':
                 reference = torch.cat((dc_b, x, t), 2)
                 prediction = torch.cat((dc_b, x, o.squeeze(dim=1)), 2)
+                p = o.squeeze(dim=1).data.cpu().numpy()
             else:
                 reference = t
                 prediction = torch.cat((t[:, :, 0:int(x.size(2)/2)+1], o.squeeze()[:, :, int(x.size(2)/2)+1:]), 2)
-            p = o.squeeze(dim=1).data.cpu().numpy()
-
+                p = o.squeeze()[:, :, int(x.size(2)/2)+1:].data.cpu().numpy()
+                if self.log_plus:
+                    p = np.power(10, p)-1
             predictionFilename = self.snapshot_path+'_'+str(i+1)+'.npy'
             if save:
                 # print(predictionFilename)

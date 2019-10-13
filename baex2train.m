@@ -11,7 +11,7 @@ function [config, store, obs] = baex2train(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwidthExtension('do', 2, 'mask', {2 2 6 3 3 3 2 2 1 0 1 0 0 1}, 'dryMode', 0); return; else store=[]; obs=[]; end
+if nargin==0, bandwidthExtension('do', 2, 'mask', {2 2 5 0 0 0 2 0 0 1 0 0 0 0 1}, 'dryMode', 0); return; else store=[]; obs=[]; end
 
 switch setting.method
     case {'dnn', 'autoDense', 'autoStride'}

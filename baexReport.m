@@ -20,17 +20,19 @@ switch show
         mask = {1 1 1 3 3 0 0 0 2};
 %         mask = {{2 0 1 4 4:5 3 1:3 2:6 2}};
 %         mask = {2 0 1 3 4:5 3 1:3 5:6 2};
-mask = {1, 1, 0, [2  3], 0, 0, [1  2  3], 0, 0, 1};
+
+mask = {2, 1, 1, 0, 0, 0, [1  2  3], 0, 0, 1};
+mask = {[2 3] 0 [5 6] 0 0 0 0 0 0 1};
         config = expExpose(config, 't', 'step', 2, 'obs', 'lossValidation', 'mask', mask, 'negativeRank', [1 2 3], 'precision', 4, 'expand', 'epochs', 'pooling', 'l', 'uncertainty', -1, 'highlight', -1);
 
     case 2 % step 2 loss per setting
         clf
         hold on
         leg = {};
-        for k=3:5
-            for l=3:5
-                for m=1:4
-                    mask = {2 1 1 k l 3 1:3 m 0 0 2};
+        for k=3
+            for l=3
+                for m=1
+                    mask = {2 1 [5 6] k l 3 0 m 0 0};
                     config.displayData.plotSuccess = 0;
                     config = expExpose(config, 'loss', 'step', 2, 'obs', 0, 'mask', mask);
                     f = [num2str(config.factors.values{4}{k}) '-' num2str(config.factors.values{5}{l}) '-' num2str(config.factors.values{8}{m})];
@@ -47,7 +49,8 @@ mask = {1, 1, 0, [2  3], 0, 0, [1  2  3], 0, 0, 1};
             config = expExpose(config, 't', 'step', 2, 'obs', 'time', 'mask', {k 1 1 3 0 1}, 'expand', 'epochs', 'pooling', 'l');
         end
     case 4
-        config = expExpose(config, 't', 'step', 4, 'obs', 4:7, 'mask', {2, 2, 0, 3, 4, 3, 2, 3, 2}, 'negativeRank', 4:6);
+        mask = {[2  3], 0, [5  6], 0, 0, 0, 0, 0, 0, 1};
+        config = expExpose(config, 't', 'step', 4, 'obs', 4:7, 'mask', mask, 'negativeRank', 4:6);
 end
 % config = expExpose(config, 't', 'step', 2, 'obs', 0, 'mask', {0 0 1}, 'precision', 4, 'percent', 1);
 
