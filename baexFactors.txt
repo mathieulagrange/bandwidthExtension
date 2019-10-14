@@ -10,7 +10,7 @@ spectrumNormalization =2:=3/1= [0]
 estimatePhase =4:== {'low', 'mirror', 'gl', 'oracle'}
 learningRate =2:=3/[1 5 6]= 0.0001
 correlation =2:=3/2= [0 1]
-glNbIterations =4:=11/3= [0 50]
+glNbIterations =4:=10/3= [0 50]
 textureSize === 10
 logPlus =2:=3/[5 6]= [0 1]
 %estimatePhase =4:== [0 1]
