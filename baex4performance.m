@@ -98,9 +98,12 @@ switch setting.estimatePhase
 case 'low'
         sPredPhase = sRefPhase;
         sPredPhase(:, ceil(end/2):end) = sRefPhase(:, 1:ceil(end/2));
-case 'mirror'
-                sPredPhase = sRefPhase;
-                sPredPhase(:, ceil(end/2):end) = -sRefPhase(:, ceil(end/2):-1:1);
+        case 'mirror'
+                        sPredPhase = sRefPhase;
+                        sPredPhase(:, ceil(end/2):end) = sRefPhase(:, ceil(end/2):-1:1);
+                        case 'mirrorNegative'
+                                        sPredPhase = sRefPhase;
+                                        sPredPhase(:, ceil(end/2):end) = -sRefPhase(:, ceil(end/2):-1:1);
 case 'oracle'
         sPredPhase = sRefPhase;
 case 'gl'
