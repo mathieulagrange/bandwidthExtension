@@ -29,6 +29,10 @@ end
 idx = 0;
 obs.audioFileNames = {};
 
+expRandomSeed();
+saveIt = zeros(1, length(d.testFiles));
+saveIt(randi(length(d.testFiles), 1, 30)) = 1;
+
 for k=1:length(d.testFiles)
     sRefMag = readNPY(d.testFiles{k});
     sRefPhase = readNPY(strrep(d.testFiles{k}, '_magnitude.npy', '_phase.npy'));
@@ -90,11 +94,18 @@ for k=1:length(d.testFiles)
     sRef = sRefMag.*exp(1i*sRefPhase);
     soundRef = ispecgram(sRef.');
 
-    if (~setting.estimatePhase)
+switch setting.estimatePhase
+case 'low'
         sPredPhase = sRefPhase;
-    else
-        expRandomSeed();
-        sPredPhase = randn(size(sPredMag));
+        sPredPhase(:, ceil(end/2):end) = sRefPhase(:, 1:ceil(end/2));
+case 'mirror'
+                sPredPhase = sRefPhase;
+                sPredPhase(:, ceil(end/2):end) = sRefPhase(:, ceil(end/2):-1:1);
+case 'oracle'
+        sPredPhase = sRefPhase;
+case 'gl'
+      %  expRandomSeed();
+      %  sPredPhase = randn(size(sPredMag));
         sPredPhase(:, 1:ceil(end/2)) = sRefPhase(:, 1:ceil(end/2));
         sPredPhase(:, ceil(end/2):end) = sRefPhase(:, 1:ceil(end/2));
         %         sPredPhase = sRefPhase;
@@ -109,8 +120,7 @@ for k=1:length(d.testFiles)
     obs.nmse(k) = immse(soundRef, soundPred)/(norm(soundRef, 2).^2/numel(soundRef));
     obs.srr(k) = snr(soundRef, soundRef-soundPred);
 
-    if (setting.squeeze)
-        % save files only for squeezed dataset
+    if (setting.squeeze || saveIt(k))
         if length(soundPred)>d.samplingFrequency*60
             ls = floor(length(soundPred)/(d.samplingFrequency*60))*d.samplingFrequency*60;
             soundPreds = reshape(soundPred(1:ls), d.samplingFrequency*60, []);
