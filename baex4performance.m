@@ -107,8 +107,8 @@ case 'low'
 case 'oracle'
         sPredPhase = sRefPhase;
 case 'gl'
-      %  expRandomSeed();
-      %  sPredPhase = randn(size(sPredMag));
+        expRandomSeed();
+        sPredPhase = randn(size(sPredMag));
         sPredPhase(:, 1:ceil(end/2)) = sRefPhase(:, 1:ceil(end/2));
         sPredPhase(:, ceil(end/2):end) = sRefPhase(:, 1:ceil(end/2));
         %         sPredPhase = sRefPhase;
