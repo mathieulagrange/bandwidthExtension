@@ -47,7 +47,7 @@ toolPath  =
 %% CODE
 
 % code dependencies to load and send server side as a cell array of strings with paths to the dependencies
-dependencies  = { '~/tools/expLanes/lib'}
+dependencies  = { '~/tools/expLanes/lib',  '~/tools/peass',  '~/tools/peaq'}
 % dependencies (including expLanes) can be part of the experiment in a dependencies directory: 0 do not use local versions, 1 use local versions, 2 update local versions
 localDependencies  = 0
 % version tag of the code of the experiment

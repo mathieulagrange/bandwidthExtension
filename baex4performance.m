@@ -11,7 +11,7 @@ function [config, store, obs] = baex4performance(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwidthExtension('do', 4, 'mask', {2 2 5 0 0 0 2 0 0 1 0 0 0 0 1}, 'debug', 1); return; else store=[]; obs=[]; end
+if nargin==0, bandwidthExtension('do', 4, 'mask', {2 2 5 0 0 0 2 0 0 1 0 0 0 0 1}, 'debug', 0); return; else store=[]; obs=[]; end
 
 % load list of spectrogram files from step 1
 d = expLoad(config, [], 1, 'data');
@@ -36,7 +36,7 @@ saveIt(randi(length(d.testFiles), 1, 30)) = 1;
 for k=1:length(d.testFiles)
     sRefMag = readNPY(d.testFiles{k});
     sRefPhase = readNPY(strrep(d.testFiles{k}, '_magnitude.npy', '_phase.npy'));
-
+    
     if k==1
         % mel projection matrices
         mel27 = fft2melmx((size(sRefMag, 2)-1)*2, d.samplingFrequency, 27);
@@ -44,7 +44,7 @@ for k=1:length(d.testFiles)
         mel40 = fft2melmx((size(sRefMag, 2)-1)*2, d.samplingFrequency, 40);
         mel40 = mel40(:, 1:end/2+1);
     end
-
+    
     sRefMagSqueeze=[];
     sRefPhaseSqueeze=[];
     for l=1:size(sRefMag, 1)
@@ -55,7 +55,7 @@ for k=1:length(d.testFiles)
     sRefPhase = sRefPhaseSqueeze;
     %    sRefMag  = reshape(permute(sRefMag, [1 3 2]), size(sRefMag, 1)*size(sRefMag, 3), size(sRefMag, 2));
     %    sRefPhase  = reshape(permute(sRefPhase, [1 3 2]), size(sRefPhase, 1)*size(sRefPhase, 3), size(sRefPhase, 2));
-
+    
     sPredMag = sRefMag;
     switch setting.method
         case {'dnn', 'autoDense', 'autoStride'}
@@ -65,7 +65,7 @@ for k=1:length(d.testFiles)
                 hfMagSqueeze(end+1:end+size(hfMag, 2), :) = squeeze(hfMag(l, :, :));
             end
             sPredMag(:, ceil(end/2+1):end) = hfMagSqueeze;
-
+            
         case 'replicate'
             sPredMag(:, ceil(end/2+1):end) = replicationBaseline(sRefMag', setting.correlation)';
         case 'null'
@@ -81,48 +81,81 @@ for k=1:length(d.testFiles)
         plot(mean(sRefMag(iddg:iddg+10, :)), 'k')
         legend({'prediction', 'reference'})
     end
-
+    
     obs.lossSpec(k) = immse(sRefMag, sPredMag);
     if ~isempty(specNorm)
         obs.lossSpecNorm(k) = immse(sRefMag./repmat(specNorm, size(sRefMag, 1), 1), sPredMag./repmat(specNorm, size(sPredMag, 1), 1));
     else
-        obs.lossSpecNorm(k) = 0 ;
+        obs.lossSpecNorm(k) = 0 % 
+% if (nargin < 3)
+%     StartS = [0, 0];
+% end
+% if (nargin < 4)
+%     EndS = [];
+% end
+% 
+% % Get the number of samples and channels for each file
+% WAV(1) = PQwavFilePar (Fref);
+% WAV(2) = PQwavFilePar (Ftest);
+% 
+% % Reconcile file differences
+% PQ_CheckWAV (WAV);
+% if (WAV(1).Nframe ~= WAV(2).Nframe)
+%     disp ('>>> Number of samples differ: using the minimum');
+% end
+% 
+% % Data boundaries
+% Nchan = WAV(1).Nchan;
+% [StartS, Fstart, Fend] = PQ_Bounds (WAV, Nchan, StartS, EndS, PQopt);
+;
     end
     obs.lossCqt27(k) = immse(mel27*sRefMag'.^2, mel27*sPredMag'.^2);
     obs.lossCqt40(k) = immse(mel40*sRefMag'.^2, mel40*sPredMag'.^2);
-
+    
     sRef = sRefMag.*exp(1i*sRefPhase);
     soundRef = ispecgram(sRef.');
-
-switch setting.estimatePhase
-case 'low'
-        sPredPhase = sRefPhase;
-        sPredPhase(:, ceil(end/2):end) = sRefPhase(:, 1:ceil(end/2));
+    
+    switch setting.estimatePhase
+        case 'low'
+            sPredPhase = sRefPhase;
+            sPredPhase(:, ceil(end/2):end) = sRefPhase(:, 1:ceil(end/2));
         case 'mirror'
-                        sPredPhase = sRefPhase;
-                        sPredPhase(:, ceil(end/2):end) = sRefPhase(:, ceil(end/2):-1:1);
-                        case 'mirrorNegative'
-                                        sPredPhase = sRefPhase;
-                                        sPredPhase(:, ceil(end/2):end) = -sRefPhase(:, ceil(end/2):-1:1);
-case 'oracle'
-        sPredPhase = sRefPhase;
-case 'gl'
-        expRandomSeed();
-        sPredPhase = randn(size(sPredMag));
-        sPredPhase(:, 1:ceil(end/2)) = sRefPhase(:, 1:ceil(end/2));
-        sPredPhase(:, ceil(end/2):end) = sRefPhase(:, 1:ceil(end/2));
-        %         sPredPhase = sRefPhase;
-        for l=1:setting.glNbIterations
-            sPredPhase = angle(specgram(ispecgram(sPredMag.'.*exp(1i*sPredPhase.')), (size(sPredMag, 2)-1)*2)).';
+            sPredPhase = sRefPhase;
+            sPredPhase(:, ceil(end/2):end) = sRefPhase(:, ceil(end/2):-1:1);
+        case 'mirrorNegative'
+            sPredPhase = sRefPhase;
+            sPredPhase(:, ceil(end/2):end) = -sRefPhase(:, ceil(end/2):-1:1);
+        case 'oracle'
+            sPredPhase = sRefPhase;
+        case 'gl'
+            expRandomSeed();
+            sPredPhase = randn(size(sPredMag));
             sPredPhase(:, 1:ceil(end/2)) = sRefPhase(:, 1:ceil(end/2));
-        end
+            sPredPhase(:, ceil(end/2):end) = sRefPhase(:, 1:ceil(end/2));
+            %         sPredPhase = sRefPhase;
+            for l=1:setting.glNbIterations
+                sPredPhase = angle(specgram(ispecgram(sPredMag.'.*exp(1i*sPredPhase.')), (size(sPredMag, 2)-1)*2)).';
+                sPredPhase(:, 1:ceil(end/2)) = sRefPhase(:, 1:ceil(end/2));
+            end
     end
     sPred = sPredMag.*exp(1i*sPredPhase);
     soundPred = ispecgram(sPred.');
-
+    
     obs.nmse(k) = immse(soundRef, soundPred)/(norm(soundRef, 2).^2/numel(soundRef));
     obs.srr(k) = snr(soundRef, soundRef-soundPred);
-
+    
+    fileNameRef = [expSave(config) '_audio_ref.wav'];
+    fileNamePred = [expSave(config) '_audio_pred.wav'];
+    audiowrite(fileNameRef, resample(soundRef, 48000, d.samplingFrequency), 48000);
+    audiowrite(fileNamePred, resample(soundPred, 48000, d.samplingFrequency), 48000);
+    options.destDir = '/tmp/';
+    options.segmentationFactor = 1;
+    res = PEASS_ObjectiveMeasure({fileNameRef}, fileNamePred, options);
+    obs.ops = res.OPS;
+    obs.odg =  PQevalAudio(fileNameRef, fileNamePred);
+    delete(fileNameRef);
+    delete(fileNamePred);
+    
     if (setting.squeeze || saveIt(k))
         if length(soundPred)>d.samplingFrequency*60
             ls = floor(length(soundPred)/(d.samplingFrequency*60))*d.samplingFrequency*60;
