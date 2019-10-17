@@ -39,7 +39,6 @@ switch setting.method
                     config.sequentialData.obs = o.data;
                 else
                     fprintf(2, 'unable to retrieve previous epochs from file\n');
-                    return
                 end
             end
         end
