@@ -11,7 +11,7 @@ function [config, store, obs] = baex4performance(config, setting, data)
 % Date: 22-May-2019
 
 % Set behavior for debug mode
-if nargin==0, bandwidthExtension('do', 4, 'mask', {2 2 5 0 0 0 2 0 0 1 0 0 0 0 1}, 'debug', 0); return; else store=[]; obs=[]; end
+if nargin==0, bandwidthExtension('do', 4, 'mask', {2 2 3 0 0 0 2 0 0 1 0 0 0 0 1}, 'debug', 0, 'parallel', 6); return; else store=[]; obs=[]; end
 
 % load list of spectrogram files from step 1
 d = expLoad(config, [], 1, 'data');
@@ -26,24 +26,27 @@ else
     specNorm = [];
 end
 
-idx = 0;
-obs.audioFileNames = {};
+audioFileNames = {};
 
 expRandomSeed();
 saveIt = zeros(1, length(d.testFiles));
 saveIt(randi(length(d.testFiles), 1, 30)) = 1;
 
-for k=1:length(d.testFiles)
+options.destDir = '/tmp/';
+options.segmentationFactor = 1;
+
+
+parfor k=1:length(d.testFiles)
     sRefMag = readNPY(d.testFiles{k});
     sRefPhase = readNPY(strrep(d.testFiles{k}, '_magnitude.npy', '_phase.npy'));
     
-    if k==1
-        % mel projection matrices
-        mel27 = fft2melmx((size(sRefMag, 2)-1)*2, d.samplingFrequency, 27);
-        mel27 = mel27(:, 1:end/2+1);
-        mel40 = fft2melmx((size(sRefMag, 2)-1)*2, d.samplingFrequency, 40);
-        mel40 = mel40(:, 1:end/2+1);
-    end
+    %     if k==1
+    % mel projection matrices
+    mel27 = fft2melmx((size(sRefMag, 2)-1)*2, d.samplingFrequency, 27);
+    mel27 = mel27(:, 1:end/2+1);
+    mel40 = fft2melmx((size(sRefMag, 2)-1)*2, d.samplingFrequency, 40);
+    mel40 = mel40(:, 1:end/2+1);
+    %     end
     
     sRefMagSqueeze=[];
     sRefPhaseSqueeze=[];
@@ -72,6 +75,7 @@ for k=1:length(d.testFiles)
             sPredMag(:, ceil(end/2+1):end)=0;
         case 'oracle'
     end
+    sPredMag(sPredMag<0) = 0;
     if (isfield(config, 'debug') && config.debug)
         dbstop in baex4performance at 79
         clf
@@ -82,35 +86,14 @@ for k=1:length(d.testFiles)
         legend({'prediction', 'reference'})
     end
     
-    obs.lossSpec(k) = immse(sRefMag, sPredMag);
+    lossSpec(k) = immse(sRefMag, sPredMag);
     if ~isempty(specNorm)
-        obs.lossSpecNorm(k) = immse(sRefMag./repmat(specNorm, size(sRefMag, 1), 1), sPredMag./repmat(specNorm, size(sPredMag, 1), 1));
+        lossSpecNorm(k) = immse(sRefMag./repmat(specNorm, size(sRefMag, 1), 1), sPredMag./repmat(specNorm, size(sPredMag, 1), 1));
     else
-        obs.lossSpecNorm(k) = 0 % 
-% if (nargin < 3)
-%     StartS = [0, 0];
-% end
-% if (nargin < 4)
-%     EndS = [];
-% end
-% 
-% % Get the number of samples and channels for each file
-% WAV(1) = PQwavFilePar (Fref);
-% WAV(2) = PQwavFilePar (Ftest);
-% 
-% % Reconcile file differences
-% PQ_CheckWAV (WAV);
-% if (WAV(1).Nframe ~= WAV(2).Nframe)
-%     disp ('>>> Number of samples differ: using the minimum');
-% end
-% 
-% % Data boundaries
-% Nchan = WAV(1).Nchan;
-% [StartS, Fstart, Fend] = PQ_Bounds (WAV, Nchan, StartS, EndS, PQopt);
-;
+        lossSpecNorm(k) = 0;
     end
-    obs.lossCqt27(k) = immse(mel27*sRefMag'.^2, mel27*sPredMag'.^2);
-    obs.lossCqt40(k) = immse(mel40*sRefMag'.^2, mel40*sPredMag'.^2);
+    lossCqt27(k) = immse(mel27*sRefMag'.^2, mel27*sPredMag'.^2);
+    lossCqt40(k) = immse(mel40*sRefMag'.^2, mel40*sPredMag'.^2);
     
     sRef = sRefMag.*exp(1i*sRefPhase);
     soundRef = ispecgram(sRef.');
@@ -141,20 +124,23 @@ for k=1:length(d.testFiles)
     sPred = sPredMag.*exp(1i*sPredPhase);
     soundPred = ispecgram(sPred.');
     
-    obs.nmse(k) = immse(soundRef, soundPred)/(norm(soundRef, 2).^2/numel(soundRef));
-    obs.srr(k) = snr(soundRef, soundRef-soundPred);
+    nmse(k) = immse(soundRef, soundPred)/(norm(soundRef, 2).^2/numel(soundRef));
+    srr(k) = snr(soundRef, soundRef-soundPred);
     
-    fileNameRef = [expSave(config) '_audio_ref.wav'];
-    fileNamePred = [expSave(config) '_audio_pred.wav'];
-    audiowrite(fileNameRef, resample(soundRef, 48000, d.samplingFrequency), 48000);
-    audiowrite(fileNamePred, resample(soundPred, 48000, d.samplingFrequency), 48000);
-    options.destDir = '/tmp/';
-    options.segmentationFactor = 1;
-    res = PEASS_ObjectiveMeasure({fileNameRef}, fileNamePred, options);
-    obs.ops = res.OPS;
-    obs.odg =  PQevalAudio(fileNameRef, fileNamePred);
-    delete(fileNameRef);
-    delete(fileNamePred);
+    if 1
+        fileNameRef = [expSave(config) '_' num2str(k) '_audio_ref.wav'];
+        fileNamePred = [expSave(config) '_' num2str(k) '_audio_pred.wav'];
+        audiowrite(fileNameRef, resample(soundRef, 48000, d.samplingFrequency), 48000);
+        audiowrite(fileNamePred, resample(soundPred, 48000, d.samplingFrequency), 48000);
+        res = PEASS_ObjectiveMeasure({fileNameRef}, fileNamePred, options);
+        ops(k) = res.OPS;
+        odg(k) =  PQevalAudio(fileNameRef, fileNamePred);
+        delete(fileNameRef);
+        delete(fileNamePred);
+    else
+        ops(k) = NaN;
+        odg(k) = Nan;
+    end
     
     if (setting.squeeze || saveIt(k))
         if length(soundPred)>d.samplingFrequency*60
@@ -164,12 +150,35 @@ for k=1:length(d.testFiles)
             soundPreds = soundPred;
         end
         fileName = [expSave(config) '_audio_'];
+        idx=0;
+        audioFileNames_k = {};
         for l=1:size(soundPreds, 2)
-            fileNameL = [fileName num2str(idx) '.ogg'];
-            obs.audioFileNames{end+1} = fileNameL;
+            fileNameL = [fileName num2str(k) '_'  num2str(idx) '.ogg'];
+            audioFileNames_k{end+1} = fileNameL;
             sound = soundPreds(:, l)/max(abs(soundPreds(:, l)))*.9;
             audiowrite(fileNameL, sound, d.samplingFrequency);
             idx=idx+1;
         end
+        audioFileNames{k} = audioFileNames_k;
     end
 end
+
+obs.ops = ops;
+obs.odg = odg;
+obs.lossCqt27 = lossCqt27;
+obs.lossCqt40 = lossCqt40;
+obs.lossSpec = lossSpec;
+obs.lossSpecNorm = lossSpecNorm;
+obs.nmse = nmse;
+obs.srr = srr;
+
+obs.audioFileNames = {};
+for k=1:length(audioFileNames)
+    for l=1:length(audioFileNames{k})
+        tmp = audioFileNames{k};
+    obs.audioFileNames = {obs.audioFileNames{:} tmp{l} };
+    
+    end
+end
+
+% disp('done');
