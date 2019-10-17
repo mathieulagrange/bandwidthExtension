@@ -50,7 +50,8 @@ switch show
     case 3 % step  timing
         db = 3;
         mask = {{[2 3], 1, [1], 2:3, 0, 2, 3, 3, 0, [2], 0, 1, 0, 0, 1}};
-        config = expExpose(config, 't', 'step', 2, 'obs', 3, 'mask', mask, 'precision', 3, 'save', 0, 'name', '+', 'negativeRank', [1 2], 'highlight', -1, 'expand', 'dataset');
+        mask = {[2  3], 1, 1, [2  3], 0, 2, 3, 3, 0, 2, 0, 1, 0, 0, 1};
+        config = expExpose(config, 't', 'step', 2, 'obs', 3, 'mask', mask, 'precision', 3, 'save', 0, 'name', '+', 'negativeRank', [1 2], 'highlight', -1);
     case 4
         mask = {{[2 3], 1, [1], 3, 2, 2, 0, 0, 0, 1}};
         db = 3;
