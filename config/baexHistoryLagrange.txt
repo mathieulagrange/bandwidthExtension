@@ -208,3 +208,4 @@ bandwidthExtension('do', 4, 'mask', {{[3], 1, [1 5], 3, 2, 2, [3], 2, 0, [2], 0 
 bandwidthExtension('do', 2, 'mask', {[2 3], 1, [1], 2:3, 0, 2, 3, 3, 0, [2], 0, 1, 0, 0, 1}, 'host', 1.2)
 bandwidthExtension('sync', {'4o', 1.1})
 bandwidthExtension('sync', {'2o', 1.1})
+bandwidthExtension('do', 4, 'mask', {{[2 3], 1, [4], 3, 2, 2, [3], 2, 0, [4], 0 , 0, 0, 0, 1}}, 'host', 2.1, 'parallel', -8)
