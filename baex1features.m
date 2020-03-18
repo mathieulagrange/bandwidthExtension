@@ -27,7 +27,7 @@ end
 
 % launch computation of features python side
 [store, obs] = expSystem(config, data);
-store.samplingFrequency = data.samplingFrequency;
+store.fs = data.samplingFrequency;
 
 % computation
 sMin = inf;
@@ -39,7 +39,7 @@ for k=1:length(store.trainFiles)
     sMax = max(sMax, max(sRefMag(:)));
 end
 sm = mean(s);
-obs.dynamicOri = sMax-sMin;
+obs.dynamicRange = sMax-sMin;
 % validation
 nsMin = inf;
 nsMax = 0;
@@ -51,7 +51,7 @@ for k=1:length(store.trainFiles)
     nsMax = max(nsMax, max(nsRefMag(:)));
 end
 smn = mean(ns);
-obs.dynamicNorm = nsMax-nsMin;
+obs.normalizedRange = nsMax-nsMin;
 
 store.normFile = strrep(store.trainPath, 'train', 'norm.npy');
 writeNPY(sm, store.normFile);

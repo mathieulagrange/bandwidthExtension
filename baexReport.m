@@ -12,7 +12,7 @@ if nargin==0, bandwidthExtension('report', 'r'); return; end
 % mask = {2 2 1 3 2 1 0 1 0 0 2};
 % config = expExpose(config, 'loss', 'step', 2, 'obs', 0, 'mask', mask, 'pooling', 'l');
 % return
-show=3;
+show=6;
 
 switch show
     case 1 % step 2 loss
@@ -52,11 +52,21 @@ switch show
         mask = {{[2 3], 1, [1], 2:3, 0, 2, 3, 3, 0, [2], 0, 1, 0, 0, 1}};
         mask = {[2  3], 1, 1, [2  3], 0, 2, 3, 3, 0, 2, 0, 1, 0, 0, 1};
         config = expExpose(config, 't', 'step', 2, 'obs', 3, 'mask', mask, 'precision', 3, 'save', 0, 'name', '+', 'negativeRank', [1 2], 'highlight', -1);
+    case 5 % odg ops
+        db = 3;
+        mask = {{[2 3], 1, [1], 2:3, 0, 2, 3, 3, 0, [2], 0, 1, 0, 0, 1}};
+        mask = {{[2 3], 1, [1:6], 3, 2, 2, 3, 2, 0, 2, 0, 0, 0, 0, 1}};
+        mask = {{[2], 2, [1, 5, 6], 3, 2, 2, [3], 2, 0, [2], 0 , 0, 0, 0, 1}};
+        config = expExpose(config, 't', 'step', 4, 'obs', 8, 'mask', mask, 'precision', 1, 'save', 0, 'name', '+', 'negativeRank', [1 2], 'highlight', -1, 'expand', 'dataset');
     case 4
         mask = {{[2 3], 1, [1], 3, 2, 2, 0, 0, 0, 1}};
         db = 3;
         mask = {{db, 1, [1 2 3 4], 3, 2, 2, 3, 2, 0, [2 4], 0, 1, 0, 0, 1}, {db, 1, [5 6], 3, 2, 2, 11, 2, 0, [2 4], 0, 1, 0, 0, 1}};
         config = expExpose(config, 't', 'step', 4, 'obs', 7, 'mask', mask, 'negativeRank', 4:6, 'precision', 3, 'sort', -3, 'save', 1, 'name', '+');
+    case 6
+             mask = {{[2 3], 1, [0], 3, 2, 2, [3], 2, 0, [2], 0 , 1, 0, 0, 1}};
+        config = expExpose(config, 't', 'step', 4, 'obs', 0, 'mask', mask, 'precision', 1, 'percent', 1, 'precision', 3, 'save', 0, 'name', '+', 'negativeRank', [1 2], 'highlight', -1);
+   
 end
 % config = expExpose(config, 't', 'step', 2, 'obs', 0, 'mask', {0 0 1}, 'precision', 4, 'percent', 1);
 

@@ -120,7 +120,7 @@ function expDependencies(config)
 p = fileparts(mfilename('fullpath'));
 addpath(genpath(p));
 
-if config.localDependencies == 0 || config.localDependencies == 2
+%if config.localDependencies == 0 || config.localDependencies == 2
     for k=1:length(config.dependencies)
         dependencyPath = config.dependencies{k};
         if dependencyPath(1) == '.'
@@ -130,7 +130,7 @@ if config.localDependencies == 0 || config.localDependencies == 2
         end
         addpath(genpath(dependencyPath));
     end
-end
+%end
 
 
 function [userDefaultConfigFileName, userDir] = expUserDefaultConfig(defaultFileName, force)

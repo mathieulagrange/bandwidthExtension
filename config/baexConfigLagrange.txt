@@ -26,7 +26,7 @@ readMe  = 0
 % several paths contains a diamond operator <> do not replace unless you do not want expLanes to replace this token automatically 
 
 % names of the machines as a cell array of 1) string or 2) cell array of strings
-machineNames  = {{ 'pc-lagrange', 'dodo', 'toto', 'yoyo', 'popo'}, {'pc-adtsi-sunda.irccyn.ec-nantes.fr', 'pc-adtsi-optimed.irccyn.ec-nantes.fr'}}
+machineNames  = {{ 'pc-lagrange', 'dodo', 'toto', 'yoyo'}, {'popo', 'titi'}, {'pc-adtsi-sunda.irccyn.ec-nantes.fr', 'pc-adtsi-optimed.irccyn.ec-nantes.fr'}}
 % path to input data (usually accessed read only)
 inputPath  = /data/databases
 % path to the code repository of the experiment (diamond operator <> do not replace unless you do not want expLanes to fill this field automatically)
@@ -40,16 +40,16 @@ backupPath  = /tmp/expLanesBackup/bandwidthExtension
 % path to export the experiment
 exportPath  = /tmp/bandwidthExtension
 % path to the directory of the Matlab binary
-matlabPath  =
+matlabPath  = {'', '~/local/MATLAB_R2016b.app/bin'}
 % path to Unix tools (pdflatex, rsync, ssh, screen), can be a string, a cell array of strings
-toolPath  =
+toolPath  = {'/Library/TeX/texbin'}
 
 %% CODE
 
 % code dependencies to load and send server side as a cell array of strings with paths to the dependencies
 dependencies  = { '~/tools/expLanes/lib',  '~/tools/peass',  '~/tools/peaq',  '~/tools/export_fig'}
 % dependencies (including expLanes) can be part of the experiment in a dependencies directory: 0 do not use local versions, 1 use local versions, 2 update local versions
-localDependencies  = 0
+localDependencies  = 1
 % version tag of the code of the experiment
 codeVersion  = 0.1
 

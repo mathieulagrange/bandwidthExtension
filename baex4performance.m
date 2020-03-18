@@ -98,6 +98,7 @@ parfor k=1:length(d.testFiles)
     sRef = sRefMag.*exp(1i*sRefPhase);
     soundRef = ispecgram(sRef.');
     
+    sPredPhase = 0;
     switch setting.estimatePhase
         case 'low'
             sPredPhase = sRefPhase;
@@ -127,20 +128,24 @@ parfor k=1:length(d.testFiles)
     nmse(k) = immse(soundRef, soundPred)/(norm(soundRef, 2).^2/numel(soundRef));
     srr(k) = snr(soundRef, soundRef-soundPred);
     
-    if 1
-        fileNameRef = [expSave(config) '_' num2str(k) '_audio_ref.wav'];
-        fileNamePred = [expSave(config) '_' num2str(k) '_audio_pred.wav'];
-        audiowrite(fileNameRef, resample(soundRef, 48000, d.samplingFrequency), 48000);
-        audiowrite(fileNamePred, resample(soundPred, 48000, d.samplingFrequency), 48000);
-        res = PEASS_ObjectiveMeasure({fileNameRef}, fileNamePred, options);
-        ops(k) = res.OPS;
-        odg(k) =  PQevalAudio(fileNameRef, fileNamePred);
-        delete(fileNameRef);
-        delete(fileNamePred);
-    else
+%     if 1
+%         fileNameRef = [expSave(config) '_' num2str(k) '_audio_ref.wav'];
+%         fileNamePred = [expSave(config) '_' num2str(k) '_audio_pred.wav'];
+%         audiowrite(fileNameRef, resample(soundRef, 48000, d.samplingFrequency), 48000);
+%         audiowrite(fileNamePred, resample(soundPred, 48000, d.samplingFrequency), 48000);
+%         res = PEASS_ObjectiveMeasure({fileNameRef}, fileNamePred, options);
+%         ops(k) = res.OPS;
+%         odg(k) =  PQevalAudio(fileNameRef, fileNamePred);
+%         delete(fileNameRef);
+%         delete(fileNamePred);
+%     else
         ops(k) = NaN;
-        odg(k) = Nan;
-    end
+        odg(k) = NaN;
+%     end
+
+[mref,rfs]=pemo_internal(soundRef,d.samplingFrequency);
+[mtest,rfs]=pemo_internal(soundPred,d.samplingFrequency);
+psm(k) = pemo_metric(mref,mtest,rfs);
     
     if (setting.squeeze || saveIt(k))
         if length(soundPred)>d.samplingFrequency*60
@@ -163,8 +168,9 @@ parfor k=1:length(d.testFiles)
     end
 end
 
-obs.ops = ops;
-obs.odg = odg;
+% obs.ops = ops;
+% obs.odg = odg;
+obs.psm = psm;
 obs.lossCqt27 = lossCqt27;
 obs.lossCqt40 = lossCqt40;
 obs.lossSpec = lossSpec;
@@ -172,13 +178,13 @@ obs.lossSpecNorm = lossSpecNorm;
 obs.nmse = nmse;
 obs.srr = srr;
 
-obs.audioFileNames = {};
-for k=1:length(audioFileNames)
-    for l=1:length(audioFileNames{k})
-        tmp = audioFileNames{k};
-    obs.audioFileNames = {obs.audioFileNames{:} tmp{l} };
-    
-    end
-end
+% obs.audioFileNames = {};
+% for k=1:length(audioFileNames)
+%     for l=1:length(audioFileNames{k})
+%         tmp = audioFileNames{k};
+%     obs.audioFileNames = {obs.audioFileNames{:} tmp{l} };
+%     
+%     end
+% end
 
 % disp('done');
