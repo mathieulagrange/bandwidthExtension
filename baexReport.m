@@ -6,13 +6,14 @@ function config = baexReport(config)
 % Copyright: Mathieu Lagrange
 % Date: 22-May-2019
 
-if nargin==0, bandwidthExtension('report', 'r'); return; end
+if nargin==0, bandwidthExtension('report', 'rH'); return; end
 
 
 % mask = {2 2 1 3 2 1 0 1 0 0 2};
 % config = expExpose(config, 'loss', 'step', 2, 'obs', 0, 'mask', mask, 'pooling', 'l');
 % return
 show=6;
+
 
 switch show
     case 1 % step 2 loss
@@ -67,6 +68,7 @@ switch show
              mask = {{[2 3], 1, [0], 3, 2, 2, [3], 2, 0, [2], 0 , 1, 0, 0, 1}};
         config = expExpose(config, 't', 'step', 4, 'obs', 0, 'mask', mask, 'precision', 1, 'percent', 1, 'precision', 3, 'save', 0, 'name', '+', 'negativeRank', [1 2], 'highlight', -1);
    
+
 end
 % config = expExpose(config, 't', 'step', 2, 'obs', 0, 'mask', {0 0 1}, 'precision', 4, 'percent', 1);
 
